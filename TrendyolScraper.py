@@ -165,8 +165,9 @@ def downloadImages(valid_urls):
 
 def main():
     global t
-    driver1 = webdriver.Chrome("D:\SDK\chromedriver.exe")
+    driver1 = webdriver.Chrome('chromedriver',chrome_options=chrome_options)
     driver1.get(searchURL)
+
     # Log in to Pinterest.com
 
     print("Starting threads...")

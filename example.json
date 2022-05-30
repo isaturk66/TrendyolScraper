@@ -1,0 +1,609 @@
+{
+    "product": {
+        "attributes": [
+            {
+                "key": {
+                    "name": "Kumaş Tipi",
+                    "id": 200
+                },
+                "value": {
+                    "name": "Örme",
+                    "id": 2191
+                },
+                "starred": false
+            },
+            {
+                "key": {
+                    "name": "Renk",
+                    "id": 348
+                },
+                "value": {
+                    "name": "Mavi",
+                    "id": 9
+                },
+                "starred": false
+            },
+            {
+                "key": {
+                    "name": "Ek Özellik",
+                    "id": 124
+                },
+                "value": {
+                    "name": "Ek Özellik Mevcut Değil",
+                    "id": 1178759
+                },
+                "starred": false
+            }
+        ],
+        "alternativeVariants": [],
+        "variants": [
+            {
+                "attributeId": 338,
+                "attributeName": "Beden",
+                "attributeType": "Size",
+                "attributeValue": "42",
+                "stamps": [],
+                "price": {
+                    "profitMargin": 0,
+                    "discountedPrice": {
+                        "text": "314,49 TL",
+                        "value": 314.49
+                    },
+                    "sellingPrice": {
+                        "text": "369,99 TL",
+                        "value": 369.99
+                    },
+                    "originalPrice": {
+                        "text": "295,99 TL",
+                        "value": 295.99
+                    },
+                    "currency": "TRY"
+                },
+                "fulfilmentType": "st",
+                "attributeBeautifiedValue": "42",
+                "isWinner": true,
+                "listingId": "8c15f5ed27a825da744656d8e3dd67b1",
+                "stock": null,
+                "sellable": true,
+                "availableForClaim": true,
+                "barcode": "8683046992809",
+                "itemNumber": 374302188,
+                "discountedPriceInfo": "Sepette İndirimli",
+                "hasCollectable": true,
+                "unitInfo": {
+                    "unitPrice": false,
+                    "unitPriceText": false
+                },
+                "rushDeliveryMerchantListingExist": false,
+                "lowerPriceMerchantListingExist": false,
+                "fastDeliveryOptions": []
+            }
+        ],
+        "otherMerchants": [],
+        "campaign": {
+            "id": 605950,
+            "name": "Trendyol Curve - Yeni Sezon Fırsatları",
+            "startDate": "2022-05-16T15:00:18",
+            "endDate": "2022-05-23T20:00:00",
+            "isMultipleSupplied": false,
+            "stockTypeId": 2,
+            "url": "/trendyol-curve---yeni-sezon-firsatlari/butikdetay/605950",
+            "showTimer": false
+        },
+        "category": {
+            "id": 1030,
+            "name": "Ceket",
+            "hierarchy": "Giyim/Büyük Beden/Büyük Beden Ceket",
+            "refundable": true,
+            "beautifiedName": "ceket",
+            "isVASEnabled": false
+        },
+        "brand": {
+            "isVirtual": true,
+            "beautifiedName": "trendyol-curve",
+            "id": 148061,
+            "name": "Trendyol Curve",
+            "path": "/trendyol-curve-x-b148061"
+        },
+        "color": "Mavi",
+        "metaBrand": {
+            "id": 1262112,
+            "name": "Trendyol Curve",
+            "beautifiedName": "",
+            "isVirtual": false,
+            "path": ""
+        },
+        "showVariants": true,
+        "showSexualContent": true,
+        "brandCategoryBanners": [],
+        "allVariants": [
+            {
+                "itemNumber": 374302188,
+                "value": "42",
+                "inStock": true,
+                "currency": "TRY",
+                "barcode": "8683046992809",
+                "price": 314.49
+            },
+            {
+                "itemNumber": 374302184,
+                "value": "44",
+                "inStock": true,
+                "currency": "TRY",
+                "barcode": "8683046992762",
+                "price": 314.49
+            },
+            {
+                "itemNumber": 374302183,
+                "value": "46",
+                "inStock": true,
+                "currency": "TRY",
+                "barcode": "8683046992779",
+                "price": 314.49
+            },
+            {
+                "itemNumber": 374302189,
+                "value": "48",
+                "inStock": true,
+                "currency": "TRY",
+                "barcode": "8683046992786",
+                "price": 314.49
+            },
+            {
+                "itemNumber": 374302187,
+                "value": "50",
+                "inStock": false,
+                "currency": "TRY",
+                "barcode": "8683046992793",
+                "price": 314.49
+            }
+        ],
+        "otherMerchantVariants": [],
+        "installmentBanner": "https://cdn.dsmcdn.com/web/web-installment-campaigns/3mv3.png",
+        "installmentText": "Peşin Fiyatına 3 Taksit!",
+        "categoryTopRankings": null,
+        "isVasEnabled": false,
+        "originalCategory": {
+            "id": 2972,
+            "name": "Büyük Beden Ceket",
+            "hierarchy": "Giyim/Büyük Beden/Büyük Beden Ceket",
+            "refundable": true,
+            "beautifiedName": "buyuk-beden-ceket",
+            "isVASEnabled": false
+        },
+        "landings": [],
+        "id": 232650151,
+        "productCode": "TBBSS22YE00000",
+        "name": "Mavi Cep Detaylı Denim Ceket TBBSS22YE00000",
+        "nameWithProductCode": "Mavi Cep Detaylı Denim Ceket TBBSS22YE00000",
+        "description": "",
+        "contentDescriptions": [
+            {
+                "description": "Modelin Ölçüleri: Boy: 1.72, Göğüs: 101 , Bel: 84, Kalça: 121",
+                "bold": false
+            },
+            {
+                "description": "Mankenin üzerindeki ürün 2XL/44 bedendir.",
+                "bold": false
+            },
+            {
+                "description": "%100 Pamuk",
+                "bold": false
+            },
+            {
+                "description": "Üst boy: 74 cm",
+                "bold": false
+            },
+            {
+                "description": "Bu üründen en fazla 10 adet sipariş verilebilir. 10 adetin üzerindeki siparişleri Trendyol iptal etme hakkını saklı tutar.",
+                "bold": false
+            },
+            {
+                "description": "Kampanya fiyatından satılmak üzere 5 adetten fazla stok sunulmuştur.",
+                "bold": false
+            },
+            {
+                "description": "Listelenen fiyat 23 Mayıs 2022 tarihine kadar geçerlidir.",
+                "bold": false
+            },
+            {
+                "description": "Bir ürün, birden fazla satıcı tarafından satılabilir. Birden fazla satıcı tarafından satışa sunulan ürünlerin satıcıları ürün için belirledikleri fiyata, satıcı puanlarına, teslimat statülerine, ürünlerdeki promosyonlara, kargonun bedava olup olmamasına ve ürünlerin hızlı teslimat ile teslim edilip edilememesine, ürünlerin stok ve kategorileri bilgilerine göre sıralanmaktadır.",
+                "bold": false
+            }
+        ],
+        "productGroupId": 201586764,
+        "tax": 8,
+        "businessUnit": "PL Büyük Beden",
+        "maxInstallment": 12,
+        "gender": {
+            "name": "Kadın",
+            "id": 1
+        },
+        "webGender": {
+            "name": "Kadın",
+            "id": 1
+        },
+        "url": "/trendyol-curve/mavi-cep-detayli-denim-ceket-tbbss22ye00000-p-232650151",
+        "images": [
+            "/ty408/product/media/images/20220426/16/98593243/374302184/2/2_org_zoom.jpg",
+            "/ty410/product/media/images/20220426/16/98593243/374302184/3/3_org_zoom.jpg",
+            "/ty410/product/media/images/20220426/16/98593243/374302184/4/4_org_zoom.jpg",
+            "/ty409/product/media/images/20220426/16/98593243/374302184/5/5_org_zoom.jpg",
+            "/ty409/product/media/images/20220426/16/98593243/374302184/6/6_org_zoom.jpg",
+            "/ty423/product/media/images/20220509/12/107250644/374302184/2/2_org_zoom.jpg",
+            "/ty424/product/media/images/20220509/12/107250644/374302184/3/3_org_zoom.jpg",
+            "/ty423/product/media/images/20220509/12/107250644/374302184/4/4_org_zoom.jpg"
+        ],
+        "isSellable": true,
+        "isBasketDiscount": true,
+        "hasStock": true,
+        "price": {
+            "profitMargin": 0,
+            "discountedPrice": {
+                "text": "314,49 TL",
+                "value": 314.49
+            },
+            "sellingPrice": {
+                "text": "369,99 TL",
+                "value": 369.99
+            },
+            "originalPrice": {
+                "text": "295,99 TL",
+                "value": 295.99
+            },
+            "currency": "TRY"
+        },
+        "isFreeCargo": false,
+        "promotions": [
+            {
+                "promotionRemainingTime": "Son 2 Gün 4 Saat",
+                "type": 1,
+                "text": "Sepette İndirimli",
+                "id": 3506057,
+                "link": "/sr?prm=3506057"
+            }
+        ],
+        "merchant": {
+            "isSearchableMerchant": true,
+            "stickers": [
+                86
+            ],
+            "merchantBadges": [
+                {
+                    "webImageUrl": "https://cdn.dsmcdn.com/seller-store/resources/resmi_satici.svg",
+                    "mobileImageUrl": "https://cdn.dsmcdn.com/seller-store/resources/ios_resmi_satici.png"
+                },
+                {
+                    "webImageUrl": "https://cdn.dsmcdn.com/seller-store/resources/hizli-satici.svg",
+                    "mobileImageUrl": "https://cdn.dsmcdn.com/seller-store/resources/hizli-satici.png"
+                }
+            ],
+            "id": 968,
+            "name": "Trendyol",
+            "officialName": "DSM GRUP DANIŞMANLIKİLETİŞ.VE SATIŞ TİC.A.Ş.",
+            "cityName": "İstanbul",
+            "centralRegistrationSystemNumber": "",
+            "taxNumber": "3130557669",
+            "sellerScore": 8.5,
+            "sellerScoreColor": "BAC82D",
+            "deliveryProviderName": "Trendyol",
+            "sellerLink": "/magaza/trendyol-m-968"
+        },
+        "deliveryInformation": {
+            "isRushDelivery": true,
+            "deliveryDate": "23 - 26 Mayıs",
+            "fastDeliveryOptions": []
+        },
+        "cargoRemainingDays": 2,
+        "isMarketplace": false,
+        "productStamps": [],
+        "hasHtmlContent": false,
+        "favoriteCount": 3051,
+        "uxLayout": "Fashion",
+        "isDigitalGood": false,
+        "isRunningOut": false,
+        "scheduledDelivery": false,
+        "ratingScore": {
+            "averageRating": 4.55,
+            "totalRatingCount": 29,
+            "totalCommentCount": 16
+        },
+        "showStarredAttributes": false,
+        "reviewsUrl": "/trendyol-curve/mavi-cep-detayli-denim-ceket-tbbss22ye00000-p-232650151/yorumlar",
+        "questionsUrl": "/trendyol-curve/mavi-cep-detayli-denim-ceket-tbbss22ye00000-p-232650151/saticiya-sor?merchantId=968",
+        "sellerQuestionEnabled": false,
+        "sizeChartUrl": "",
+        "sizeExpectationAvailable": false,
+        "crossPromotionAward": {
+            "awardType": null,
+            "awardValue": null,
+            "contentId": 0,
+            "merchantId": 0
+        },
+        "rushDeliveryMerchantListingExist": false,
+        "lowerPriceMerchantListingExist": false,
+        "showValidFlashSales": false,
+        "showExpiredFlashSales": false,
+        "walletRebate": {
+            "minPrice": 300,
+            "maxPrice": 10000,
+            "rebateRatio": 0.01
+        },
+        "isArtWork": false,
+        "buyMorePayLessPromotions": []
+    },
+    "htmlContent": null,
+    "user": {
+        "loggedIn": false,
+        "isBuyer": false,
+        "isElite": false
+    },
+    "configuration": {
+        "htmlContentCssUrl": "https://cdn.dsmcdn.com/mweb/production/main.be4f3b6e62dd77fccc78.css",
+        "htmlContentJsUrl": "https://cdn.dsmcdn.com/mweb/production/main.557ead4436e1bc2fada3.js",
+        "storefrontId": 1,
+        "showPaymentMethodsAndShippings": false,
+        "showDiscountInformation": false,
+        "isDynamicRender": false,
+        "widgets": [
+            {
+                "name": "pudoBanner",
+                "order": 1
+            },
+            {
+                "name": "campaigns",
+                "order": 2
+            },
+            {
+                "name": "seller",
+                "order": 3
+            },
+            {
+                "name": "otherSellers",
+                "order": 4
+            },
+            {
+                "name": "featuredComment",
+                "order": 5
+            },
+            {
+                "name": "cta",
+                "order": 6
+            },
+            {
+                "name": "otherCategories",
+                "order": 7
+            },
+            {
+                "name": "discover",
+                "order": 8
+            }
+        ],
+        "maxWidgetCount": 3,
+        "callToActions": [
+            {
+                "name": "CTA_PRODUCT_REVIEWS",
+                "selector": ".pr-rnr-w"
+            },
+            {
+                "name": "CTA_PRODUCT_DESC",
+                "selector": ".product-desc"
+            },
+            {
+                "name": "CTA_SIMILAR_PRODUCTS",
+                "selector": ".productDetail-Similar"
+            },
+            {
+                "name": "CTA_CROSS_PRODUCTS",
+                "selector": ".productDetail-Cross"
+            }
+        ],
+        "discovers": [
+            {
+                "name": "Sen de Al!",
+                "link": "/sr/?fl=encoksatanurunler",
+                "image": "https://cdn.dsmcdn.com/ty126/web-pdp/cok_satanlar.png"
+            },
+            {
+                "name": "En Çok Sepete Eklenenler",
+                "link": "/sr?fl=encoksepeteeklenenurunler",
+                "image": "https://cdn.dsmcdn.com/ty127/web-pdp/en_cok_sepete_eklenenler.png"
+            },
+            {
+                "name": "En Beğenilenler",
+                "link": "/sr?fl=encokfavorilenenurunler",
+                "image": "https://cdn.dsmcdn.com/ty127/web-pdp/en_begenilenler.png"
+            }
+        ],
+        "discoverWidgetTitle": "Trendyol'da Keşfet!",
+        "isInternational": false,
+        "culture": "tr-TR",
+        "cdnUrl": "https://cdn.dsmcdn.com",
+        "claimInfoText": "15 gün içinde ücretsiz iade.",
+        "questionsAndAnswersEnabled": true,
+        "ratingReviewEnabled": true,
+        "otherMerchantsEnabled": true,
+        "ratingReviewLikesEnabled": true,
+        "newRatingSummaryEnabled": true,
+        "redirectReviewsPageEnabled": true,
+        "languageCode": "tr",
+        "sizeCharts": [
+            [
+                "Güneş Gözlüğü",
+                "https://img-trendyol.mncdn.com/assets/banner/2018/webBanners/bedenTablosu/gozluk_beden_tablosu.jpg",
+                "Gözlük Beden Kılavuzu"
+            ],
+            [
+                "İmaj Gözlükleri",
+                "https://img-trendyol.mncdn.com/assets/banner/2018/webBanners/bedenTablosu/gozluk_beden_tablosu.jpg",
+                "Gözlük Beden Kılavuzu"
+            ],
+            [
+                "Saat",
+                "https://img-trendyol.mncdn.com/assets/banner/2018/webBanners/bedenTablosu/saatler_beden_tablosu.jpg",
+                "Saat Beden Kılavuzu"
+            ]
+        ],
+        "enhancedEcommerceEnabled": true,
+        "addReviewEnabled": false,
+        "reviewReportAbuseEnabled": true,
+        "showImageOnProductCommentsEnabled": true,
+        "crossProductsTitle": "Bu Ürünü Alanlar Bunları da Aldı",
+        "crossProductsEnabled": true,
+        "recommendationEnabled": true,
+        "productGroupEnabled": true,
+        "htmlContentEnabled": true,
+        "productAttributesEnabled": true,
+        "publishCriteriaEnabled": true,
+        "sellerAreaEnabled": true,
+        "sellerPointLowLimit": 8,
+        "sizeChartUrl": "https://cdn.dsmcdn.com/Assets/frontend-web-sizechart/tr1.html",
+        "productDetailMetaDescription": "Trendyol.com sayesinde {0} ürününe çok özel indirimlerle sahip olabilecek ve alışveriş alışkanlıklarınızı değiştireceksiniz.",
+        "schemaJsonEnabled": true,
+        "siteAddress": "https://www.trendyol.com",
+        "notifyMeEnabled": true,
+        "notifyMeCount": 10,
+        "recommendationAbTestValue": "A_0-0,B_0-0,C_1-100",
+        "lastProductCountAbTestValue": "A_0-0,B_0-100",
+        "recoCardAbTestValue": "A_0-100,B_0-0",
+        "abTestingCookieName": "WebAbTesting",
+        "clientSideReviewsEnabled": false,
+        "clientSideHtmlContentEnabled": true,
+        "alternativeVariantsEnabled": true,
+        "relatedCategoryEnabled": true,
+        "relatedCategoryAbTestVariant": "C",
+        "relatedCategoryAbTestValue": "A_0-0,B_0-0,C_0-0,D_1-100,E_0-0",
+        "relatedCategoryTitleTooltipThreshold": 43,
+        "relatedCategoryCountLimit": 5,
+        "relatedCategoryImageVirtualBrandIds": [
+            33,
+            102347,
+            39,
+            141,
+            53,
+            981,
+            254,
+            204,
+            466,
+            155,
+            296,
+            586,
+            37,
+            131,
+            971,
+            178,
+            333,
+            129,
+            136,
+            49,
+            328,
+            179,
+            38,
+            101446,
+            568,
+            138,
+            859,
+            289,
+            754,
+            43,
+            128,
+            44,
+            618,
+            569,
+            535,
+            193,
+            660,
+            160,
+            303,
+            347,
+            1265,
+            658,
+            103029,
+            104699,
+            300,
+            103500,
+            103124,
+            101476,
+            103187,
+            104189,
+            208
+        ],
+        "relatedCategoryVirtualBrandImagePath": "assets/banner/2018/mobileCDN/brandFollow",
+        "defaultBrandCategoryCombinationImageUrl": "Assets/related-category-default-image.png",
+        "legalRequirementCacheDuration": 0,
+        "digitalGoodsDeliveryText": "1 saat içinde E-mail olarak gönderilecektir.",
+        "recoCrossCustomStampsEnabled": true,
+        "canShowSizeChartButton": true,
+        "productDetailImprovedBreadcrumbEnabled": true,
+        "sellerShippingEnabled": false,
+        "productDetailReportAbuseEnabled": true,
+        "productDetailReportAbuseItems": "[{\"id\": 0,\"value\": \"Haksız fiyatlandırma fiyatı hatalı\"},{\"id\": 1,\"value\": \"Ürünün görseli hatalı\"},{\"id\": 2,\"value\": \"Ürün ismi ya da bilgileri eksik ya da hatalı\"}]",
+        "scheduledDeliveryWarningMessage": "Seçtiğiniz adrese şu anda randevulu teslimat hizmeti bulunmamaktadır. Ürünleriniz kargo ile gönderilecektir.",
+        "installmentStampAmountText": "9 TAKSİT",
+        "starredAttributesLimit": 4,
+        "sellerStoreLinkEnabled": true,
+        "featuredCardFavButtonEnabled": true,
+        "openReviewModalEnabled": false,
+        "installmentCountToDisplay": 9,
+        "currencySymbol": "TL",
+        "newSearchEnabled": true,
+        "stampType": "A",
+        "memberGwUrl": "https://public-sdc.trendyol.com/discovery-web-membergw-service",
+        "getNotifyMePreferencesFromMemberGw": true,
+        "publicProductGwUrl": "https://public.trendyol.com/discovery-web-productgw-service",
+        "publicSdcProductGwUrl": "https://public-sdc.trendyol.com/discovery-web-productgw-service",
+        "publicMdcProductGwUrl": "https://public-mdc.trendyol.com/discovery-web-productgw-service",
+        "publicMdcRecoGwUrl": "https://public-mdc.trendyol.com/discovery-web-recogw-service",
+        "productRecommendationVersion": 2,
+        "productDetailSimilarProductsButtonAbTest": "A",
+        "publicSdcCheckoutGwUrl": "https://public-sdc.trendyol.com/discovery-web-checkout-service",
+        "publicMdcCheckoutGwUrl": "https://public-mdc.trendyol.com/discovery-web-checkout-service",
+        "addToBasketOnCheckoutgwEnabled": false,
+        "collectionRecommendationEnabled": true,
+        "showCargoRemainingDays": true,
+        "pdpLinearVariantsEnabled": false,
+        "showLinearAlternativeVariants": false,
+        "sellerStoreUrl": "https://public-sdc.trendyol.com/discovery-sellerstore-webgw-service",
+        "minSellerFollowerCount": 1000,
+        "showSellerFollowerCount": false,
+        "questionCountToShow": 3,
+        "collectableCouponsEnabled": true,
+        "publicSdcCouponGwUrl": "https://public-mdc.trendyol.com/discovery-web-coupongw-service",
+        "publicMdcCouponGwUrl": "https://public-mdc.trendyol.com/discovery-web-coupongw-service",
+        "showInstallmentCampaign": false,
+        "vasServiceEnabled": true,
+        "showCrossPromotions": true,
+        "showFastMerchant": false,
+        "showWalletRebate": true,
+        "showDigitalGoodsRebate": false,
+        "pudoBannerMoreInformationText": "Siparişindeki tüm ürünlerin Gel-Al Noktasından teslimata uygun olması gerekmektedir.",
+        "pudoBannerEnabled": false,
+        "topCategoryRankingUIAbTestEnabled": false,
+        "showAllQuestionsAbTestEnabled": false,
+        "sizeExpectationFeatureEnabled": true,
+        "showFlashSales": true,
+        "flashSalesTimeSlots": [
+            12,
+            15,
+            18,
+            21,
+            24
+        ],
+        "publicMdcSocialGwUrl": "https://public-mdc.trendyol.com/discovery-web-socialgw-service",
+        "publicSdcSocialGwUrl": "https://public-sdc.trendyol.com/discovery-web-socialgw-service",
+        "minInstallmentAmountEnabled": true,
+        "minInstallmentAmountMinPrice": 1000,
+        "minInstallmentAmountMinInstallment": 3,
+        "showCheapSeller": false,
+        "stickersEnabled": true,
+        "addToCollectionEnabled": true,
+        "productGroupSantralUrl": "https://public.trendyol.com/discovery-web-websfxproductgroups-santral",
+        "publicWebSfxProductRecommendationServiceUrl": "https://public-mdc.trendyol.com/discovery-web-websfxproductrecommendation-santral",
+        "publicMdcContractServiceUrl": "https://public-mdc.trendyol.com/discovery-web-websfxcontract-santral",
+        "thresholdDayForLongTermDelivery": 15,
+        "infoForLongTermDelivery": "Ürün tedarik / üretim süresinin ardından kargolanacaktır.",
+        "priceBoxV2Enable": true,
+        "buyMorePayLessPromotionsText": "Çok Al, Az Öde!",
+        "buyMorePayLessPromotionsEnabled": true
+    }
+}

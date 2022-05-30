@@ -53,7 +53,7 @@ get_pic_counter = 0
 finished = False
 
 if not os.path.exists(rootPath):
-    os.mkdir(rootPath)
+    os.makedirs(rootPath)
 
 
 try:

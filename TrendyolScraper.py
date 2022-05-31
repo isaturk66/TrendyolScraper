@@ -1,6 +1,5 @@
 # Import necessary libraries
 from glob import glob
-from importlib.metadata import metadata
 from bs4 import BeautifulSoup
 import time
 from selenium import webdriver

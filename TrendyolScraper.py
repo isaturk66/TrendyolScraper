@@ -1,5 +1,6 @@
 # Import necessary libraries
 from glob import glob
+from importlib.metadata import metadata
 from bs4 import BeautifulSoup
 import time
 from selenium import webdriver
@@ -49,7 +50,7 @@ searchURL = args.url_id
 maximum = args.maximum
 rootPath = args.path
 
-pic_variant_counter = 0
+total_counter = 0
 get_pic_counter = 0
 finished = False
 
@@ -144,19 +145,31 @@ def downloader(url,name):
 def downloadImages(valid_urls):
   global get_pic_counter
   global finished
-  global pic_variant_counter
+  global total_counter
   beginning = time.time()
 
   while (0 < len(valid_urls) and not finished and (time.time() - beginning) < 30): #This while loop will trigger every time the valid_urls are bi
     try:
-      if(pic_variant_counter >= maximum):
+      if(total_counter >= maximum):
         finished = True
         break
       for urls in valid_urls:
         r =requests.get("https://trendyol.com"+urls)
         searched = re.search("""(?<=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__=)(.*)(?=;window.TYPageName=")""", r.content.decode('utf-8')).group()
         parsedJSON = json.loads(searched)
+
+        metadata= {}
+        metadata["name"] = parsedJSON["product"]["name"]
+        metadata["color"] = parsedJSON["product"]["color"]
+        metadata["url"] = parsedJSON["product"]["url"]
+        metadata["gender"] = parsedJSON["product"]["gender"]
+        metadata["brand"] = parsedJSON["product"]["brand"]
+        metadata["attributes"]  = parsedJSON["product"]["attributes"] 
+
+        with open(os.path.join(rootPath,str(get_pic_counter)+".meta"), 'w', encoding='utf8') as outfile:
+          json.dump(metadata, outfile, ensure_ascii=False)
         
+        pic_variant_counter = 0
         for imgURL in parsedJSON["product"]["images"]:
           fullURL = "https://cdn.dsmcdn.com/"+imgURL
           print(fullURL)
@@ -164,6 +177,7 @@ def downloadImages(valid_urls):
             print(str(get_pic_counter) + " - downloaded " + fullURL)
             beginning = time.time()
             pic_variant_counter += 1
+            total_counter +=1
         valid_urls.remove(urls)
         get_pic_counter += 1
     except:
@@ -193,7 +207,7 @@ def main():
 
     time.sleep(8)
 
-   # print("Downloading pictures...")
+    print("Downloading pictures...")
 
     t2 = threading.Thread(target=downloadImages, args=(valid_urls,))
     t2.setDaemon(True)

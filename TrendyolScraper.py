@@ -49,6 +49,7 @@ searchURL = args.url_id
 maximum = args.maximum
 rootPath = args.path
 
+pic_variant_counter = 0
 get_pic_counter = 0
 finished = False
 
@@ -143,21 +144,25 @@ def downloader(url,name):
 def downloadImages(valid_urls):
   global get_pic_counter
   global finished
-  while (0 < len(valid_urls) and not finished): #This while loop will trigger every time the valid_urls are bi
+  global pic_variant_counter
+  beginning = time.time()
+
+  while (0 < len(valid_urls) and not finished and (time.time() - beginning) < 30): #This while loop will trigger every time the valid_urls are bi
     try:
-      if(get_pic_counter >= maximum):
+      if(pic_variant_counter >= maximum):
         finished = True
         break
       for urls in valid_urls:
         r =requests.get("https://trendyol.com"+urls)
         searched = re.search("""(?<=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__=)(.*)(?=;window.TYPageName=")""", r.content.decode('utf-8')).group()
         parsedJSON = json.loads(searched)
-        pic_variant_counter = 0
+        
         for imgURL in parsedJSON["product"]["images"]:
           fullURL = "https://cdn.dsmcdn.com/"+imgURL
           print(fullURL)
           if(downloader(fullURL, os.path.join(rootPath,str(get_pic_counter)+"_"+str(pic_variant_counter)+".jpg"))):
             print(str(get_pic_counter) + " - downloaded " + fullURL)
+            beginning = time.time()
             pic_variant_counter += 1
         valid_urls.remove(urls)
         get_pic_counter += 1

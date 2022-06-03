@@ -2,6 +2,7 @@
 from glob import glob
 from bs4 import BeautifulSoup
 import time
+from numpy import vstack
 from selenium import webdriver
 from selenium.webdriver.support import ui
 import threading
@@ -46,6 +47,11 @@ args = parse_args()
 
 
 searchURL = args.url_id
+
+if("?pi=" in searchURL):
+  searchURL = searchURL.split("?pi=")[0]
+
+
 maximum = args.maximum
 rootPath = args.path
 
@@ -76,6 +82,7 @@ def page_is_loaded(driver):
 
 # Finds the detailed product page of each "pin" for pinterest
 def fetchLinks(driver, valid_urls):
+    global searchURL
 
     list_counter = 0
   #  try:
@@ -89,22 +96,50 @@ def fetchLinks(driver, valid_urls):
 
     prevScroll = -1
 
+    lastloadIndex = 0
+
     isBreaked = False
-   
-    while not isBreaked and beginning - end < 30:
+    upperCount = 0
+    
+  
+    while not isBreaked: # and beginning - end < 30:
+      if(beginning - end > 30):
+        if(not upperCount > 2):
+          driver.execute_script("window.scrollBy(0,-10000)")
+          upperCount+= 1
+          end = time.time()
+          time.sleep(1)
+        else:
+          print("Fetching process is completed with "+str(len(valid_urls))+ "results found") 
+          isBreaked = True
+          break
       try:
         beginning = time.time()
-
         if(list_counter >= maximum):
           isBreaked = True
           break
         
         # ----------------------------------EDIT THE CODE BELOW------------------------------#
         # Locate all the urls of the detailed pins
+
+        try:
+          currentLoadIndex = int(driver.current_url.split("pi=")[1])
+        except:
+          currentLoadIndex = 0
+        
+        if(currentLoadIndex < lastloadIndex):
+          driver.get(searchURL+"?pi="+str(lastloadIndex+1))
+          print("Running get on "+searchURL+"?pi="+str(lastloadIndex+1))
+          lastloadIndex += 1
+          time.sleep(2)
+        else:
+          lastloadIndex = currentLoadIndex
+
+
         soup = BeautifulSoup(driver.page_source, "html.parser")
         # for c in soup.find_all("div", {"class": name}):
         if(driver.execute_script("return window.pageYOffset") == prevScroll):
-          driver.execute_script("window.scrollBy(0,-2000)")
+          driver.execute_script("window.scrollBy(0,-4000)")
           time.sleep(2)
 
         prevScroll = driver.execute_script("return window.pageYOffset")
@@ -114,13 +149,15 @@ def fetchLinks(driver, valid_urls):
             url = a.get("href")
             if url not in valid_urls:
               valid_urls.append(url)
+              # print("Added "+url)
               end = time.time()
+              upperCount = 0
               list_counter += 1
     
-
         driver.execute_script("window.scrollBy(0,2000)")
         time.sleep(2)
-      except:
+      except Exception as e:
+        print(e)
         continue
     return
 
@@ -171,7 +208,6 @@ def downloadImages(valid_urls):
         pic_variant_counter = 0
         for imgURL in parsedJSON["product"]["images"]:
           fullURL = "https://cdn.dsmcdn.com/"+imgURL
-          print(fullURL)
           if(downloader(fullURL, os.path.join(rootPath,str(get_pic_counter)+"_"+str(pic_variant_counter)+".jpg"))):
             print(str(get_pic_counter) + " - downloaded " + fullURL)
             beginning = time.time()

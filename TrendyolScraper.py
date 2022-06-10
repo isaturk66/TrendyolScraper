@@ -37,6 +37,9 @@ def parse_args():
     parser.add_argument('--max',
                         dest='maximum', help='The search text that will be searched in pinterest',
                         default=100000, type=int)
+    parser.add_argument('--prefix',
+                        dest='prefix', help='The search text that will be searched in pinterest',
+                        default="", type=str)
 
     args = parser.parse_args()
     return args
@@ -54,6 +57,7 @@ if("?pi=" in searchURL):
 
 maximum = args.maximum
 rootPath = args.path
+prefix = args.prefix
 
 total_counter = 0
 get_pic_counter = 0
@@ -208,7 +212,12 @@ def downloadImages(valid_urls):
         pic_variant_counter = 0
         for imgURL in parsedJSON["product"]["images"]:
           fullURL = "https://cdn.dsmcdn.com/"+imgURL
-          if(downloader(fullURL, os.path.join(rootPath,str(get_pic_counter)+"_"+str(pic_variant_counter)+".jpg"))):
+          
+          prefixW = ""
+          if(prefix != ""):
+            prefixW = prefix+"-"
+          
+          if(downloader(fullURL, os.path.join(rootPath,prefixW + str(get_pic_counter)+"_"+str(pic_variant_counter)+".jpg"))):
             print(str(get_pic_counter) + " - downloaded " + fullURL)
             beginning = time.time()
             pic_variant_counter += 1

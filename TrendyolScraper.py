@@ -205,17 +205,17 @@ def downloadImages(valid_urls):
         metadata["gender"] = parsedJSON["product"]["gender"]
         metadata["brand"] = parsedJSON["product"]["brand"]
         metadata["attributes"]  = parsedJSON["product"]["attributes"] 
+        prefixW = ""
+        if(prefix != ""):
+          prefixW = prefix+"-"
 
-        with open(os.path.join(rootPath,str(get_pic_counter)+".meta"), 'w', encoding='utf8') as outfile:
+        with open(os.path.join(rootPath,prefixW +str(get_pic_counter)+".meta"), 'w', encoding='utf8') as outfile:
           json.dump(metadata, outfile, ensure_ascii=False)
         
         pic_variant_counter = 0
         for imgURL in parsedJSON["product"]["images"]:
           fullURL = "https://cdn.dsmcdn.com/"+imgURL
           
-          prefixW = ""
-          if(prefix != ""):
-            prefixW = prefix+"-"
           
           if(downloader(fullURL, os.path.join(rootPath,prefixW + str(get_pic_counter)+"_"+str(pic_variant_counter)+".jpg"))):
             print(str(get_pic_counter) + " - downloaded " + fullURL)

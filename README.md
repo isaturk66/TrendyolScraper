@@ -25,7 +25,7 @@ These are the arguments for TrendyolScraper
 
 * **--prefix** &nbsp;&nbsp;  A prefix that will be put in front of all files downloaded, use this if you are going to make multiple downloads on the same directory otherwise files from the first dowload will be overridden. No prefix at default OPTIONAL
 
-Example usage,
+**Example usage**
 
  ```sh
   python TrendyolScraper.py --url "https://www.trendyol.com/erkek-gomlek-x-g2-c75" --path ./Dataset --max 100 --prefix m
@@ -77,6 +77,12 @@ An example label:
 Important note: for the "exact names" you need the exact names of the attributes that are given inside .meta files, You can generate a excel file by running this script in -xlsx mode to see all of the exact names of the categories and attributes easily.
 
 See example_labelmap.json for a complete example of a labelmap generated suitable to a dataset dowloaded from the links https://www.trendyol.com/kadin-t-shirt-x-g1-c73 and https://www.trendyol.com/erkek-t-shirt-x-g2-c73
+
+
+**Example usage**
+```sh
+python attribute_analysis.py  --path ./Dataset --labelmap example_labelmap.json
+```
 
 
 The csv file created with this script may look like this:

@@ -27,18 +27,18 @@ doneURLs = []
 def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(
-        description='Webscraper for pinterest')
+        description='Webscraper for trendyol.com')
     parser.add_argument('--url',
-                        dest='url_id', help='The search text that will be searched in pinterest',
-                        default='', type=str)
+                        dest='url_id', help='The url of the trendyol search that will be scraped',
+                        default='', required=True,type=str)
     parser.add_argument('--path',
-                        dest='path', help='The search text that will be searched in pinterest',
-                        default='./Trendyol', type=str)
+                        dest='path', help='The path of the directory that all the image and .meta files will be downloaded into',
+                        default='./Trendyol', required=True,type=str)
     parser.add_argument('--max',
-                        dest='maximum', help='The search text that will be searched in pinterest',
-                        default=100000, type=int)
+                        dest='maximum', help='Maximum number of images that will be downloaded, no limit as default',
+                        default=1000000, type=int)
     parser.add_argument('--prefix',
-                        dest='prefix', help='The search text that will be searched in pinterest',
+                        dest='prefix', help='A prefix that will be put in front of all files downloaded, use this if you are going to make multiple downloads on the same directory. No prefix at default',
                         default="", type=str)
 
     args = parser.parse_args()
@@ -76,8 +76,6 @@ try:
 except:
   startIndex= 0
 
-#t = ScrapingEssentials(rootPath,startIndex)
-
 
 # Determines if the page is loaded yet.
 def page_is_loaded(driver):
@@ -89,10 +87,6 @@ def fetchLinks(driver, valid_urls):
     global searchURL
 
     list_counter = 0
-  #  try:
- #     with open(rootPath+ "/sources.txt",'r') as f: sourceList = f.read().splitlines()
-  #  except:
-   #   sourceList = []
 
     # Does this until you have maximum items or the program has gone on for long enough, meaning that it reached the end of results
     beginning = time.time()

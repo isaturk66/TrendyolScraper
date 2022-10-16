@@ -6,7 +6,6 @@ This is a script written in python 3 that uses selenium to scrape images and met
 ### Installation
 
 In order to install packages required to run the scripts, run the following command
-* npm
   ```sh
   pip install -r requirements.txt
   ```

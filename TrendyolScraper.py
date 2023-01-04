@@ -31,6 +31,8 @@ def parse_args():
     parser.add_argument('--url',
                         dest='url_id', help='The url of the trendyol search that will be scraped',
                         default='', required=True,type=str)
+    parser.add_argument('-l', '--listurls', action='store_true',dest= 'isListUrLs', default=False, help='If you want to create a .txt file with all image urls')
+    parser.add_argument('-n', '--nodownload', action='store_true',dest= 'isNoDownload', default=False, help='If you want dont want to download the images')
     parser.add_argument('--path',
                         dest='path', help='The path of the directory that all the image and .meta files will be downloaded into',
                         default='./Trendyol', required=True,type=str)
@@ -47,9 +49,9 @@ def parse_args():
 
 
 args = parse_args()
-
-
 searchURL = args.url_id
+
+
 
 if("?pi=" in searchURL):
   searchURL = searchURL.split("?pi=")[0]
@@ -58,10 +60,15 @@ if("?pi=" in searchURL):
 maximum = args.maximum
 rootPath = args.path
 prefix = args.prefix
+isNoDownload = args.isNoDownload
+isListUrLs = args.isListUrLs
+  
 
 total_counter = 0
 get_pic_counter = 0
 finished = False
+isBreaked = False
+
 
 if not os.path.exists(rootPath):
     os.makedirs(rootPath)
@@ -76,6 +83,11 @@ try:
 except:
   startIndex= 0
 
+def prefixW():
+  prefixW = ""
+  if(prefix != ""):
+    prefixW = prefix+"-"
+  return prefixW
 
 # Determines if the page is loaded yet.
 def page_is_loaded(driver):
@@ -85,9 +97,10 @@ def page_is_loaded(driver):
 # Finds the detailed product page of each "pin" for pinterest
 def fetchLinks(driver, valid_urls):
     global searchURL
+    global isBreaked
+
 
     list_counter = 0
-
     # Does this until you have maximum items or the program has gone on for long enough, meaning that it reached the end of results
     beginning = time.time()
     end = time.time()
@@ -96,7 +109,6 @@ def fetchLinks(driver, valid_urls):
 
     lastloadIndex = 0
 
-    isBreaked = False
     upperCount = 0
     
   
@@ -199,27 +211,40 @@ def downloadImages(valid_urls):
         metadata["gender"] = parsedJSON["product"]["gender"]
         metadata["brand"] = parsedJSON["product"]["brand"]
         metadata["attributes"]  = parsedJSON["product"]["attributes"] 
-        prefixW = ""
-        if(prefix != ""):
-          prefixW = prefix+"-"
+        prefixWW = prefixW()
 
-        with open(os.path.join(rootPath,prefixW +str(get_pic_counter)+".meta"), 'w', encoding='utf8') as outfile:
+        with open(os.path.join(rootPath,prefixWW +str(get_pic_counter)+".meta"), 'w', encoding='utf8') as outfile:
           json.dump(metadata, outfile, ensure_ascii=False)
+          if isNoDownload:
+            print("Metadata for "+str(get_pic_counter)+" is saved")
         
         pic_variant_counter = 0
         for imgURL in parsedJSON["product"]["images"]:
           fullURL = "https://cdn.dsmcdn.com/"+imgURL
+          if(isListUrLs):
+            
+            with open(os.path.join(rootPath,prefixWW+"imageUrls.txt"), "a") as fff:
+              fff.write("{0},{1},{2}".format(get_pic_counter,pic_variant_counter,fullURL))
+              fff.write("\n")
+
+          if(not isNoDownload):
+            if(downloader(fullURL, os.path.join(rootPath,prefixWW + str(get_pic_counter)+"_"+str(pic_variant_counter)+".jpg"))):
+              print(str(get_pic_counter) + " - downloaded " + fullURL)
           
-          
-          if(downloader(fullURL, os.path.join(rootPath,prefixW + str(get_pic_counter)+"_"+str(pic_variant_counter)+".jpg"))):
-            print(str(get_pic_counter) + " - downloaded " + fullURL)
-            beginning = time.time()
-            pic_variant_counter += 1
-            total_counter +=1
+          beginning = time.time()
+          pic_variant_counter += 1
+          total_counter +=1
         valid_urls.remove(urls)
         get_pic_counter += 1
     except:
       continue
+  
+  if(not isBreaked):
+    time.sleep(4)
+    downloadImages(valid_urls)
+    
+
+    
 
     
 
@@ -228,7 +253,7 @@ def downloadImages(valid_urls):
 
 def main():
     global t
-    driver1 = webdriver.Chrome('chromedriver',chrome_options=chrome_options)
+    driver1 = webdriver.Chrome('chromedriver',options=chrome_options)
     driver1.get(searchURL)
 
     # Log in to Pinterest.com
@@ -239,16 +264,15 @@ def main():
     time.sleep(3)
 
     print("Fetching search results...")
-    t1 = threading.Thread(target=fetchLinks, args=(driver1, valid_urls,))
-    t1.setDaemon(True)
+    
+    t1 = threading.Thread(target=fetchLinks, args=(driver1, valid_urls,), daemon=True)
     t1.start()
 
     time.sleep(8)
-
+   
     print("Downloading pictures...")
 
-    t2 = threading.Thread(target=downloadImages, args=(valid_urls,))
-    t2.setDaemon(True)
+    t2 = threading.Thread(target=downloadImages, args=(valid_urls,), daemon=True)
     t2.start()
     
     t2.join()
@@ -258,7 +282,5 @@ def main():
 
 if __name__ == "__main__":
   main()
-
-
 else:
   main()

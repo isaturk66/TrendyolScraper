@@ -12,9 +12,9 @@ In order to install packages required to run the scripts, run the following comm
 
 ## Usage
 
-This repository has two different scripts. The main script that does the scraping is named TrendyolScraper.js
+This repository has three different scripts. The main script that does the scraping is named TrendyolScraper.js
 
-These are the arguments for TrendyolScraper
+**These are the arguments for TrendyolScraper**
 
 * **--url** &nbsp;&nbsp;  The url of the trendyol search that will be scraped. REQUIRED
 
@@ -22,7 +22,11 @@ These are the arguments for TrendyolScraper
 
 * **--max** &nbsp;&nbsp;  Maximum number of images that will be downloaded, no limit as default. OPTIONAL
 
-* **--prefix** &nbsp;&nbsp;  A prefix that will be put in front of all files downloaded, use this if you are going to make multiple downloads on the same directory otherwise files from the first dowload will be overridden. No prefix at default OPTIONAL
+* **--prefix** &nbsp;&nbsp;  A prefix that will be put in front of all files downloaded, use this if you are going to make multiple downloads on the same directory otherwise files from the first dowload will be overridden. No prefix at default.OPTIONAL
+
+* **-n** &nbsp;&nbsp;  If you do not want to download the scraped images, this mode will still generate the .meta files
+
+* **-l** &nbsp;&nbsp;  If you want to create a .txt file that lists the urls of scraped images. You can later use this .txt file with the **download_images.py** to download images to a remote location without having to need to rescrape.
 
 **Example usage**
 
@@ -32,12 +36,30 @@ These are the arguments for TrendyolScraper
 Note: Do not pass a --max argument if you want to dowload as much as possible
 
 
+&nbsp;
+
+**Second script is the download_image.py** which is a tool to efficiently download images in bulk from the .txt file generated in the first script(TrendyolScraper.py)
+
+It has three arguments
+
+*  **--file** &nbsp;&nbsp;  The path of the directory that will be scanned for .meta files. REQUIRED
+
+* **--dir** &nbsp;&nbsp;  The path to the .json file that contains the labelmap for .csv file
+
+* **--prefix** &nbsp;&nbsp;  A prefix that will be put in front of all files downloaded, use this if you are going to make multiple downloads on the same directory otherwise files from the first dowload will be overridden. No prefix at default. OPTIONAL
+
+**Example usage**
+
+ ```sh
+  python download_images.py --file "m-imageUrls.txt" --dir "./images" --prefix m
+  ```
+
 
 
 &nbsp;
 
 
-Second script is the attribute_analysis.py which provides few tools for interpreting the data that you downloaded
+**Third script is the attribute_analysis.py** which provides few tools for interpreting the data that you downloaded
 
 This script has three modes,
 

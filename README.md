@@ -42,9 +42,9 @@ Note: Do not pass a --max argument if you want to dowload as much as possible
 
 It has three arguments
 
-*  **--file** &nbsp;&nbsp;  The path of the directory that will be scanned for .meta files. REQUIRED
+*  **--file** &nbsp;&nbsp;  The path of .txt file that has the formatted list of urls to be downloaded. REQUIRED
 
-* **--dir** &nbsp;&nbsp;  The path to the .json file that contains the labelmap for .csv file
+* **--dir** &nbsp;&nbsp;  The directory where the images will be downloaded, default is the directory where the script is ran. OPTIONAL
 
 * **--prefix** &nbsp;&nbsp;  A prefix that will be put in front of all files downloaded, use this if you are going to make multiple downloads on the same directory otherwise files from the first dowload will be overridden. No prefix at default. OPTIONAL
 

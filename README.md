@@ -18,7 +18,11 @@ This repository has three different scripts. The main script that does the scrap
 
 * **--url** &nbsp;&nbsp;  The url of the trendyol search that will be scraped. REQUIRED
 
-* **--path** &nbsp;&nbsp;  The path of the directory that all the image and .meta files will be downloaded into. REQUIRED
+* **--urlsPath** &nbsp;&nbsp;  The path to the .txt file that contains the list of urls with each url being in each line 
+
+* **Note:** Either one "url" or "urlsPath" is REQUIRED
+
+* **--path** &nbsp;&nbsp;  The path of the directory that all the image and .meta files will be downloaded into.
 
 * **--max** &nbsp;&nbsp;  Maximum number of images that will be downloaded, no limit as default. OPTIONAL
 
@@ -53,7 +57,6 @@ It has three arguments
  ```sh
   python download_images.py --file "m-imageUrls.txt" --dir "./images" --prefix m
   ```
-
 
 
 &nbsp;

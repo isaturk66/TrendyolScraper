@@ -14,6 +14,9 @@ import json
 import requests
 import re
 import urllib.request
+import traceback
+from queue import Queue
+
 
 
 sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
@@ -30,15 +33,19 @@ def parse_args():
         description='Webscraper for trendyol.com')
     parser.add_argument('--url',
                         dest='url_id', help='The url of the trendyol search that will be scraped',
-                        default='', required=True,type=str)
+                        default=None, required=False,type=str)
+    parser.add_argument('--urlsPath',
+                        dest='urlsPath', help='Path to the file containing the URLs that will be scraped',
+                        default=None, type=str)
     parser.add_argument('-l', '--listurls', action='store_true',dest= 'isListUrLs', default=False, help='If you want to create a .txt file with all image urls')
     parser.add_argument('-n', '--nodownload', action='store_true',dest= 'isNoDownload', default=False, help='If you want dont want to download the images')
+    parser.add_argument('-c', '--maxpercategory', action='store_true',dest= 'maxpc', default=False, help='If you want the --max argument to apply to each url in the file seperately')
     parser.add_argument('--path',
                         dest='path', help='The path of the directory that all the image and .meta files will be downloaded into',
                         default='./Trendyol', required=True,type=str)
     parser.add_argument('--max',
                         dest='maximum', help='Maximum number of images that will be downloaded, no limit as default',
-                        default=1000000, type=int)
+                        default=10000000, type=int)
     parser.add_argument('--prefix',
                         dest='prefix', help='A prefix that will be put in front of all files downloaded, use this if you are going to make multiple downloads on the same directory. No prefix at default',
                         default="", type=str)
@@ -47,14 +54,25 @@ def parse_args():
     return args
 
 
+def assert_args():
+    if(args.url_id == None and args.urlsPath == None):
+        print("You must provide either a url or a file containing urls")
+        exit()
+    if(args.url_id != None and args.urlsPath != None):
+        print("You must provide either a url or a file containing urls, not both")
+        exit()
+    if(args.urlsPath == None and args.maxpc == True):
+        print("You must provide a file containing urls if you want to use the -c/--maxpercategory argument")
+        exit()
+    
 
 args = parse_args()
-searchURL = args.url_id
+url = args.url_id
 
 
-
-if("?pi=" in searchURL):
-  searchURL = searchURL.split("?pi=")[0]
+if url != None:
+  if("?pi=" in url):
+    url = url.split("?pi=")[0]
 
 
 maximum = args.maximum
@@ -62,12 +80,16 @@ rootPath = args.path
 prefix = args.prefix
 isNoDownload = args.isNoDownload
 isListUrLs = args.isListUrLs
+isMaxPerCategory = args.maxpc
+urlsPath = args.urlsPath
   
 
 total_counter = 0
 get_pic_counter = 0
+productQueue = Queue()
+valid_urls = []
+
 finished = False
-isBreaked = False
 
 
 if not os.path.exists(rootPath):
@@ -83,6 +105,20 @@ try:
 except:
   startIndex= 0
 
+
+
+def getUrlListFromFile(path):
+  urlList = []
+  with open(path) as f:
+    for line in f:
+      if("?pi=" in line):
+        urlList.append(line.split("?pi=")[0].strip())
+      else:
+        urlList.append(line.strip())
+  return urlList
+
+
+
 def prefixW():
   prefixW = ""
   if(prefix != ""):
@@ -95,10 +131,9 @@ def page_is_loaded(driver):
 
 
 # Finds the detailed product page of each "pin" for pinterest
-def fetchLinks(driver, valid_urls):
+def fetchLinks(driver):
     global searchURL
-    global isBreaked
-
+    global finished
 
     list_counter = 0
     # Does this until you have maximum items or the program has gone on for long enough, meaning that it reached the end of results
@@ -112,25 +147,21 @@ def fetchLinks(driver, valid_urls):
     upperCount = 0
     
   
-    while not isBreaked: # and beginning - end < 30:
-      if(beginning - end > 30):
-        if(not upperCount > 2):
+    while True: 
+      if(beginning - end > 20):
+        if(not upperCount > 0):
           driver.execute_script("window.scrollBy(0,-10000)")
           upperCount+= 1
           end = time.time()
           time.sleep(1)
         else:
           print("Fetching process is completed with "+str(len(valid_urls))+ "results found") 
-          isBreaked = True
-          break
+          finished = True
+          return
       try:
         beginning = time.time()
         if(list_counter >= maximum):
-          isBreaked = True
-          break
-        
-        # ----------------------------------EDIT THE CODE BELOW------------------------------#
-        # Locate all the urls of the detailed pins
+          return
 
         try:
           currentLoadIndex = int(driver.current_url.split("pi=")[1])
@@ -145,11 +176,13 @@ def fetchLinks(driver, valid_urls):
         else:
           lastloadIndex = currentLoadIndex
 
-
         soup = BeautifulSoup(driver.page_source, "html.parser")
-        # for c in soup.find_all("div", {"class": name}):
         if(driver.execute_script("return window.pageYOffset") == prevScroll):
-          driver.execute_script("window.scrollBy(0,-4000)")
+          
+          if(beginning - end >10):
+            driver.execute_script("window.scrollBy(0,-5000)")
+          else:
+            driver.execute_script("window.scrollBy(0,-3000)")
           time.sleep(2)
 
         prevScroll = driver.execute_script("return window.pageYOffset")
@@ -159,17 +192,16 @@ def fetchLinks(driver, valid_urls):
             url = a.get("href")
             if url not in valid_urls:
               valid_urls.append(url)
-              # print("Added "+url)
+              productQueue.put(url)
               end = time.time()
               upperCount = 0
               list_counter += 1
     
-        driver.execute_script("window.scrollBy(0,2000)")
+        driver.execute_script("window.scrollBy(0,500)")
         time.sleep(2)
       except Exception as e:
         print(e)
         continue
-    return
 
 
 downloadTry = 0
@@ -180,79 +212,84 @@ def downloader(url,name):
     downloadTry = 0
     return True
   except:
-    if(downloadTry<5):
-      print("Error on " +url+ "trying again...")
+    if(downloadTry<2):
+      print("Error on " +url+ ", trying again...")
       downloadTry+=1
       time.sleep(0.5)
       downloader(url,name)
 
 
 
-def downloadImages(valid_urls):
+def downloadImages():
   global get_pic_counter
   global finished
   global total_counter
-  beginning = time.time()
 
-  while (0 < len(valid_urls) and not finished and (time.time() - beginning) < 30): #This while loop will trigger every time the valid_urls are bi
+  while (True): 
+    if(productQueue.empty()):
+      if(finished):
+        return
+      else:
+        continue
+    
     try:
       if(total_counter >= maximum):
         finished = True
-        break
-      for urls in valid_urls:
-        r =requests.get("https://trendyol.com"+urls)
-        searched = re.search("""(?<=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__=)(.*)(?=;window.TYPageName=")""", r.content.decode('utf-8')).group()
-        parsedJSON = json.loads(searched)
+        return
 
-        metadata= {}
-        metadata["name"] = parsedJSON["product"]["name"]
-        metadata["color"] = parsedJSON["product"]["color"]
-        metadata["url"] = parsedJSON["product"]["url"]
-        metadata["gender"] = parsedJSON["product"]["gender"]
-        metadata["brand"] = parsedJSON["product"]["brand"]
-        metadata["attributes"]  = parsedJSON["product"]["attributes"] 
-        prefixWW = prefixW()
+      urls = productQueue.get()
+      fileNameHeader = urls.split("/")[-1].split("?")[0]
+      
+      r =requests.get("https://trendyol.com"+urls)
+      searched = re.search("""(?<=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__=)(.*)(?=;window.TYPageName=")""", r.content.decode('utf-8')).group()
+      parsedJSON = json.loads(searched)
 
-        with open(os.path.join(rootPath,prefixWW +str(get_pic_counter)+".meta"), 'w', encoding='utf8') as outfile:
-          json.dump(metadata, outfile, ensure_ascii=False)
-          if isNoDownload:
-            print("Metadata for "+str(get_pic_counter)+" is saved")
-        
-        pic_variant_counter = 0
-        for imgURL in parsedJSON["product"]["images"]:
-          fullURL = "https://cdn.dsmcdn.com/"+imgURL
-          if(isListUrLs):
-            
-            with open(os.path.join(rootPath,prefixWW+"imageUrls.txt"), "a") as fff:
-              fff.write("{0},{1},{2}".format(get_pic_counter,pic_variant_counter,fullURL))
-              fff.write("\n")
+      metadata= {}
+      metadata["name"] = parsedJSON["product"]["name"]
+      metadata["color"] = parsedJSON["product"]["color"]
+      metadata["url"] = parsedJSON["product"]["url"]
+      metadata["gender"] = parsedJSON["product"]["gender"]
+      metadata["brand"] = parsedJSON["product"]["brand"]
+      metadata["attributes"]  = parsedJSON["product"]["attributes"] 
+      prefixWW = prefixW()
 
-          if(not isNoDownload):
-            if(downloader(fullURL, os.path.join(rootPath,prefixWW + str(get_pic_counter)+"_"+str(pic_variant_counter)+".jpg"))):
-              print(str(get_pic_counter) + " - downloaded " + fullURL)
+      with open(os.path.join(rootPath,prefixWW + fileNameHeader +".meta"), 'w', encoding='utf8') as outfile:
+        json.dump(metadata, outfile, ensure_ascii=False)
+        if isNoDownload:
+          print("Metadata for "+ str(get_pic_counter) +" is saved")
+      
+      pic_variant_counter = 0
+      for imgURL in parsedJSON["product"]["images"]:
+        fullURL = "https://cdn.dsmcdn.com/"+imgURL
+        if(isListUrLs):
           
-          beginning = time.time()
-          pic_variant_counter += 1
-          total_counter +=1
-        valid_urls.remove(urls)
-        get_pic_counter += 1
-    except:
+          with open(os.path.join(rootPath,prefixWW+"imageUrls.txt"), "a") as fff:
+            fff.write("{0},{1},{2}".format(prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg",pic_variant_counter,fullURL))
+            fff.write("\n")
+        if(not isNoDownload):
+          if(downloader(fullURL, os.path.join(rootPath,prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg"))):
+            print(str(get_pic_counter) + " - downloaded " + fullURL)
+        
+        pic_variant_counter += 1
+        total_counter +=1
+      get_pic_counter += 1
+    except Exception as e: 
+      print(e)
+      print(traceback.format_exc())
       continue
   
-  if(not isBreaked):
-    time.sleep(4)
-    downloadImages(valid_urls)
     
+def clearBuffer():
+  global total_counter
+  global finished 
+  finished = False
+  if(isMaxPerCategory):
+    total_counter = 0
+  global downloadTry
+  downloadTry = 0  
 
-    
+def Scrape(searchURL):
 
-    
-
-
-
-
-def main():
-    global t
     driver1 = webdriver.Chrome('chromedriver',options=chrome_options)
     driver1.get(searchURL)
 
@@ -265,14 +302,14 @@ def main():
 
     print("Fetching search results...")
     
-    t1 = threading.Thread(target=fetchLinks, args=(driver1, valid_urls,), daemon=True)
+    t1 = threading.Thread(target=fetchLinks, args=(driver1,), daemon=True)
     t1.start()
 
     time.sleep(8)
    
     print("Downloading pictures...")
 
-    t2 = threading.Thread(target=downloadImages, args=(valid_urls,), daemon=True)
+    t2 = threading.Thread(target=downloadImages, args=(), daemon=True)
     t2.start()
     
     t2.join()
@@ -280,7 +317,20 @@ def main():
     print("Done")
 
 
+
+def main():
+
+  if(urlsPath == None):
+    Scrape(url)
+  else:
+    urls = getUrlListFromFile(urlsPath)
+    for urll in urls:
+      Scrape(urll)
+      print("Done with "+urll)
+      clearBuffer()
+
 if __name__ == "__main__":
+  start_time = time.time()
+  assert_args()
   main()
-else:
-  main()
+  print("--- %s seconds ---" % (time.time() - start_time))

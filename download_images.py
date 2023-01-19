@@ -58,8 +58,12 @@ def download_parallel(args):
     cpus = cpu_count()
     results = ThreadPool(cpus - 1).imap_unordered(download_url, args)
     for result in results:
+        ##Catch InvalidChunkLength error
+        if(result == None):
+            print("InvalidChunkLength error")
+            continue
         print('Downloaded ', result[0], ' in ', format(result[1], ".1f"), " seconds")
-
+       
 
 
 def main():

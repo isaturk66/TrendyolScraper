@@ -58,7 +58,7 @@ def parse_args():
 
 def logAndPrint(message):
   logging.debug(message)
-  logAndPrint(message)
+  print(message)
 
 
 def assert_args():

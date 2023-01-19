@@ -16,7 +16,9 @@ import re
 import urllib.request
 import traceback
 from queue import Queue
+import logging
 
+logging.basicConfig(filename='trendolscraper_'+time.time()+'.log', stream=sys.stdout, level=logging.DEBUG,  format='%(asctime)s %(message)s')
 
 
 sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
@@ -54,15 +56,20 @@ def parse_args():
     return args
 
 
+def logAndPrint(message):
+  logging.debug(message)
+  logAndPrint(message)
+
+
 def assert_args():
     if(args.url_id == None and args.urlsPath == None):
-        print("You must provide either a url or a file containing urls")
+        logAndPrint("You must provide either a url or a file containing urls")
         exit()
     if(args.url_id != None and args.urlsPath != None):
-        print("You must provide either a url or a file containing urls, not both")
+        logAndPrint("You must provide either a url or a file containing urls, not both")
         exit()
     if(args.urlsPath == None and args.maxpc == True):
-        print("You must provide a file containing urls if you want to use the -c/--maxpercategory argument")
+        logAndPrint("You must provide a file containing urls if you want to use the -c/--maxpercategory argument")
         exit()
     
 
@@ -155,7 +162,7 @@ def fetchLinks(driver):
           end = time.time()
           time.sleep(1)
         else:
-          print("Fetching process is completed with "+str(len(valid_urls))+ "results found") 
+          logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ "results found") 
           finished = True
           return
       try:
@@ -170,7 +177,7 @@ def fetchLinks(driver):
         
         if(currentLoadIndex < lastloadIndex):
           driver.get(searchURL+"?pi="+str(lastloadIndex+1))
-          print("Running get on "+searchURL+"?pi="+str(lastloadIndex+1))
+          logAndPrint("Running get on "+searchURL+"?pi="+str(lastloadIndex+1))
           lastloadIndex += 1
           time.sleep(2)
         else:
@@ -200,7 +207,7 @@ def fetchLinks(driver):
         driver.execute_script("window.scrollBy(0,500)")
         time.sleep(2)
       except Exception as e:
-        print(e)
+        logAndPrint(e)
         continue
 
 
@@ -213,7 +220,7 @@ def downloader(url,name):
     return True
   except:
     if(downloadTry<2):
-      print("Error on " +url+ ", trying again...")
+      logAndPrint("Error on " +url+ ", trying again...")
       downloadTry+=1
       time.sleep(0.5)
       downloader(url,name)
@@ -256,7 +263,7 @@ def downloadImages():
       with open(os.path.join(rootPath,prefixWW + fileNameHeader +".meta"), 'w', encoding='utf8') as outfile:
         json.dump(metadata, outfile, ensure_ascii=False)
         if isNoDownload:
-          print("Metadata for "+ str(get_pic_counter) +" is saved")
+          logAndPrint("Metadata for "+ str(get_pic_counter) +" is saved")
       
       pic_variant_counter = 0
       for imgURL in parsedJSON["product"]["images"]:
@@ -268,14 +275,14 @@ def downloadImages():
             fff.write("\n")
         if(not isNoDownload):
           if(downloader(fullURL, os.path.join(rootPath,prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg"))):
-            print(str(get_pic_counter) + " - downloaded " + fullURL)
+            logAndPrint(str(get_pic_counter) + " - downloaded " + fullURL)
         
         pic_variant_counter += 1
         total_counter +=1
       get_pic_counter += 1
     except Exception as e: 
-      print(e)
-      print(traceback.format_exc())
+      logAndPrint(e)
+      logAndPrint(traceback.format_exc())
       continue
   
     
@@ -295,26 +302,26 @@ def Scrape(searchURL):
 
     # Log in to Pinterest.com
 
-    print("Starting threads...")
+    logAndPrint("Starting threads...")
     valid_urls = []
  
     time.sleep(3)
 
-    print("Fetching search results...")
+    logAndPrint("Fetching search results...")
     
     t1 = threading.Thread(target=fetchLinks, args=(driver1,), daemon=True)
     t1.start()
 
     time.sleep(8)
    
-    print("Downloading pictures...")
+    logAndPrint("Downloading pictures...")
 
     t2 = threading.Thread(target=downloadImages, args=(), daemon=True)
     t2.start()
     
     t2.join()
 
-    print("Done")
+    logAndPrint("Done")
 
 
 
@@ -326,11 +333,11 @@ def main():
     urls = getUrlListFromFile(urlsPath)
     for urll in urls:
       Scrape(urll)
-      print("Done with "+urll)
+      logAndPrint("Done with "+urll)
       clearBuffer()
 
 if __name__ == "__main__":
   start_time = time.time()
   assert_args()
   main()
-  print("--- %s seconds ---" % (time.time() - start_time))
+  logAndPrint("--- %s seconds ---" % (time.time() - start_time))

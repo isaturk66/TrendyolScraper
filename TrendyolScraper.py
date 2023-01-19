@@ -18,7 +18,7 @@ import traceback
 from queue import Queue
 import logging
 
-logging.basicConfig(filename='trendolscraper_'+str(time.time())+'.log', format='%(asctime)s %(message)s')
+logging.basicConfig(filename='trendolscraper_'+str(time.time())+'.log', level=logging.INFO,  format='%(asctime)s %(message)s')
 
 
 sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
@@ -57,7 +57,7 @@ def parse_args():
 
 
 def logAndPrint(message):
-  logging.debug(message)
+  logging.info(message)
   print(message)
 
 

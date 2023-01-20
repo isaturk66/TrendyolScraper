@@ -128,6 +128,13 @@ def getUrlListFromFile(path):
   return urlList
 
 
+def checkIfFileExists(path):
+  if(os.path.isfile(path)):
+    return True
+  else:
+    return False
+
+
 
 def prefixW():
   prefixW = ""
@@ -249,6 +256,12 @@ def downloadImages():
 
       urls = productQueue.get()
       fileNameHeader = urls.split("/")[-1].split("?")[0]
+      prefixWW = prefixW()
+
+
+      if(checkIfFileExists(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"))):
+        logAndPrint("File already exists, skipping...")
+        continue
       
       r =requests.get("https://trendyol.com"+urls)
       searched = re.search("""(?<=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__=)(.*)(?=;window.TYPageName=")""", r.content.decode('utf-8')).group()
@@ -261,7 +274,7 @@ def downloadImages():
       metadata["gender"] = parsedJSON["product"]["gender"]
       metadata["brand"] = parsedJSON["product"]["brand"]
       metadata["attributes"]  = parsedJSON["product"]["attributes"] 
-      prefixWW = prefixW()
+      
 
       with open(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"), 'w', encoding='utf8') as outfile:
         json.dump(metadata, outfile, ensure_ascii=False)

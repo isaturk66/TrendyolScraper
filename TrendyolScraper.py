@@ -296,8 +296,6 @@ def clearBuffer():
   downloadTry = 0  
 
 def Scrape(searchURL):
-
-    driver1 = webdriver.Chrome('chromedriver',options=chrome_options)
     driver1.get(searchURL)
 
     # Log in to Pinterest.com
@@ -326,14 +324,22 @@ def Scrape(searchURL):
 
 
 def main():
+  global driver1
+
 
   if(urlsPath == None):
     Scrape(url)
   else:
     urls = getUrlListFromFile(urlsPath)
     for urll in urls:
-      Scrape(urll)
-      logAndPrint("Done with "+urll)
+      try:
+        Scrape(urll)
+        logAndPrint("Done with "+urll)
+      except Exception as e:
+        logAndPrint("!!! AN ERROR OCCURED !!!")
+        logAndPrint("Error on "+urll)
+        logAndPrint(e)
+        logAndPrint(traceback.format_exc())
       clearBuffer()
 
 if __name__ == "__main__":

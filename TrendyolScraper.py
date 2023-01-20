@@ -26,7 +26,10 @@ sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument("enable-automation")
 chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument("--disable-browser-side-navigation")
+chrome_options.add_argument("--disable-gpu")
 
 doneURLs = []
 def parse_args():
@@ -204,7 +207,14 @@ def fetchLinks(driver):
 
         prevScroll = driver.execute_script("return window.pageYOffset")
 
-        for card in soup.find_all("div", {"class": "p-card-wrppr"}):
+        cards = soup.find_all("div", {"class": "p-card-wrppr"})
+
+        if(len(cards) == 0):
+          logAndPrint("No cards were found, skipping")
+          finished = True
+          return
+
+        for card in cards:
           for a in card.find_all("a"):
             url = a.get("href")
             if url not in valid_urls:

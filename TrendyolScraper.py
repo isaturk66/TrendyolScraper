@@ -60,6 +60,9 @@ def logAndPrint(message):
   logging.info(message)
   print(message)
 
+def createDir(path):
+  if not os.path.exists(path):
+    os.makedirs(path)
 
 def assert_args():
     if(args.url_id == None and args.urlsPath == None):
@@ -99,8 +102,8 @@ valid_urls = []
 finished = False
 
 
-if not os.path.exists(rootPath):
-    os.makedirs(rootPath)
+createDir(rootPath)
+createDir(rootPath+"/meta")
 
 
 try:
@@ -260,7 +263,7 @@ def downloadImages():
       metadata["attributes"]  = parsedJSON["product"]["attributes"] 
       prefixWW = prefixW()
 
-      with open(os.path.join(rootPath,prefixWW + fileNameHeader +".meta"), 'w', encoding='utf8') as outfile:
+      with open(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"), 'w', encoding='utf8') as outfile:
         json.dump(metadata, outfile, ensure_ascii=False)
         if isNoDownload:
           logAndPrint("Metadata for "+ str(get_pic_counter) +" is saved")
@@ -325,6 +328,7 @@ def Scrape(searchURL):
 
 def main():
   global driver1
+  driver1 = webdriver.Chrome('chromedriver',options=chrome_options)
 
 
   if(urlsPath == None):

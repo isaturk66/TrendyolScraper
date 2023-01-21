@@ -17,6 +17,8 @@ import urllib.request
 import traceback
 from queue import Queue
 import logging
+import lxml
+from sys import getsizeof
 
 logging.basicConfig(filename='trendolscraper_'+str(time.time())+'.log', level=logging.INFO,  format='%(asctime)s %(message)s')
 
@@ -24,7 +26,7 @@ logging.basicConfig(filename='trendolscraper_'+str(time.time())+'.log', level=lo
 sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
+#chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("enable-automation")
 chrome_options.add_argument("start-maximized")
@@ -151,64 +153,50 @@ def page_is_loaded(driver):
     return driver.find_element_by_tag_name("body") != None
 
 
-# Finds the detailed product page of each "pin" for pinterest
 def fetchLinks(driver):
     global searchURL
     global finished
 
     list_counter = 0
     # Does this until you have maximum items or the program has gone on for long enough, meaning that it reached the end of results
-    beginning = time.time()
-    end = time.time()
-
-    prevScroll = -1
+    lastFindTime = time.time()
 
     lastloadIndex = 0
-
-    upperCount = 0
-    
   
-    while True: 
-      if(beginning - end > 20):
-        if(not upperCount > 0):
-          driver.execute_script("window.scrollBy(0,-10000)")
-          upperCount+= 1
-          end = time.time()
-          time.sleep(1)
-        else:
-          logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ "results found") 
-          finished = True
-          return
+    while True:
+      if(time.time() - lastFindTime > 30):  
+        logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
+        finished = True
+        return
+
       try:
-        beginning = time.time()
         if(list_counter >= maximum):
+          print("Maximum number of items reached")
           return
 
         try:
           currentLoadIndex = int(driver.current_url.split("pi=")[1])
         except:
           currentLoadIndex = 0
-        
+
         if(currentLoadIndex < lastloadIndex):
           driver.get(searchURL+"?pi="+str(lastloadIndex+1))
+          driver1.execute_script("document.body.style.zoom='20%'")
           logAndPrint("Running get on "+searchURL+"?pi="+str(lastloadIndex+1))
           lastloadIndex += 1
           time.sleep(2)
         else:
           lastloadIndex = currentLoadIndex
 
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-        if(driver.execute_script("return window.pageYOffset") == prevScroll):
-          
-          if(beginning - end >10):
-            driver.execute_script("window.scrollBy(0,-5000)")
-          else:
-            driver.execute_script("window.scrollBy(0,-3000)")
-          time.sleep(2)
+        source = driver.page_source
+        print("Size :", getsizeof(source))
 
-        prevScroll = driver.execute_script("return window.pageYOffset")
+        execTime = time.time()
+        soup = BeautifulSoup(source, 'lxml')
+        print(time.time()-execTime)
 
-        cards = soup.find_all("div", {"class": "p-card-wrppr"})
+        
+        cards = soup.find_all("div", {"class": "p-card-wrppr"})        
 
         if(len(cards) == 0):
           logAndPrint("No cards were found, skipping")
@@ -221,12 +209,12 @@ def fetchLinks(driver):
             if url not in valid_urls:
               valid_urls.append(url)
               productQueue.put(url)
-              end = time.time()
-              upperCount = 0
+              lastFindTime = time.time()
               list_counter += 1
-    
-        driver.execute_script("window.scrollBy(0,500)")
+        driver.execute_script("window.scrollBy(0,200000)")
         time.sleep(2)
+        
+        
       except Exception as e:
         logAndPrint(e)
         continue
@@ -256,10 +244,12 @@ def downloadImages():
   while (True): 
     if(productQueue.empty()):
       if(finished):
+        time.sleep(15)
         return
       else:
         continue
-    
+    continue
+
     try:
       if(total_counter >= maximum):
         finished = True
@@ -322,8 +312,10 @@ def clearBuffer():
   global downloadTry
   downloadTry = 0  
 
+
 def Scrape(searchURL):
     driver1.get(searchURL)
+    driver1.execute_script("document.body.style.zoom='20%'")
 
     # Log in to Pinterest.com
 
@@ -341,10 +333,10 @@ def Scrape(searchURL):
    
     logAndPrint("Downloading pictures...")
 
-    t2 = threading.Thread(target=downloadImages, args=(), daemon=True)
-    t2.start()
+    #t2 = threading.Thread(target=downloadImages, args=(), daemon=True)
+    #t2.start()
     
-    t2.join()
+    t1.join()
 
     logAndPrint("Done")
 
@@ -352,7 +344,11 @@ def Scrape(searchURL):
 
 def main():
   global driver1
+
   driver1 = webdriver.Chrome('chromedriver',options=chrome_options)
+
+
+
 
 
   if(urlsPath == None):

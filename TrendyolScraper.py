@@ -188,7 +188,7 @@ def fetchLinks(driver):
           time.sleep(2)
         else:
           lastloadIndex = currentLoadIndex
-
+        
         source = driver.page_source
         cropped = source[startIndex:endIndex]
         cropped = cropped[cropped.find('<div class="p-card-wrppr with-campaign-view"'):]
@@ -197,8 +197,6 @@ def fetchLinks(driver):
     
         soup = BeautifulSoup("<div>"+cropped, 'lxml')    
         cards = soup.find_all("div", {"class": "p-card-wrppr"})        
-
-        print("Found "+str(len(cards))+" cards")
 
         if(len(cards) == 0):
           if(legacyContentLenght == len(cropped[0: -6])):
@@ -293,12 +291,15 @@ def downloadImages():
   global total_counter
 
   with concurrent.futures.ThreadPoolExecutor() as executor:
-    while (True): 
+    
+    while (True):
       if(productQueue.empty()):
         if(finished):
           break
         else:
+          time.sleep(0.1)
           continue
+      
 
       if(total_counter >= maximum):
           finished = True
@@ -327,6 +328,8 @@ def Scrape(searchURL):
 
 def main():
   global scraperWebDriver
+  global finished
+
 
   scraperWebDriver = webdriver.Chrome('chromedriver',options=chrome_options)
 
@@ -334,7 +337,6 @@ def main():
   logAndPrint("Starting downloader...")
   downloaderThread = threading.Thread(target=downloadImages, args=(), daemon=True)
   downloaderThread.start()
-
 
   if(urlsPath == None):
     Scrape(url)
@@ -351,6 +353,7 @@ def main():
         logAndPrint(traceback.format_exc())
       clearBuffer()
 
+  finished = True
   downloaderThread.join()
   logAndPrint("Done")
 

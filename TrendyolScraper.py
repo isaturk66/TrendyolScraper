@@ -169,11 +169,6 @@ def fetchLinks(driver):
 
   
     while True:
-      if(time.time() - lastFindTime > 30):  
-        logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
-        finished = True
-        return
-
       try:
         if(list_counter >= maximum):
           print("Maximum number of items reached")
@@ -206,9 +201,12 @@ def fetchLinks(driver):
         print("Found "+str(len(cards))+" cards")
 
         if(len(cards) == 0):
-          logAndPrint("No cards were found, skipping")
-          finished = True
-          return
+          if(legacyContentLenght == len(cropped[0: -6])):
+            logAndPrint("No cards were found, skipping")
+          if(time.time() - lastFindTime > 10):
+            logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
+            finished = True
+            return
 
         for card in cards:
           for a in card.find_all("a"):

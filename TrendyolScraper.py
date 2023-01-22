@@ -2,9 +2,7 @@
 from glob import glob
 from bs4 import BeautifulSoup
 import time
-from numpy import vstack
 from selenium import webdriver
-from selenium.webdriver.support import ui
 import threading
 import argparse
 import sys
@@ -18,7 +16,8 @@ import traceback
 from queue import Queue
 import logging
 import lxml
-from sys import getsizeof
+import concurrent.futures
+
 
 logging.basicConfig(filename='trendolscraper_'+str(time.time())+'.log', level=logging.INFO,  format='%(asctime)s %(message)s')
 
@@ -26,7 +25,7 @@ logging.basicConfig(filename='trendolscraper_'+str(time.time())+'.log', level=lo
 sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 
 chrome_options = webdriver.ChromeOptions()
-#chrome_options.add_argument('--headless')
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("enable-automation")
 chrome_options.add_argument("start-maximized")
@@ -160,8 +159,14 @@ def fetchLinks(driver):
     list_counter = 0
     # Does this until you have maximum items or the program has gone on for long enough, meaning that it reached the end of results
     lastFindTime = time.time()
-
     lastloadIndex = 0
+
+    source = driver.page_source
+    startIndex= source.find('<div class="prdct-cntnr-wrppr">')
+    endIndex = -(len(source)-source.find('<div class="virtual"></div>'))
+
+    legacyContentLenght = 0
+
   
     while True:
       if(time.time() - lastFindTime > 30):  
@@ -183,20 +188,22 @@ def fetchLinks(driver):
           driver.get(searchURL+"?pi="+str(lastloadIndex+1))
           driver1.execute_script("document.body.style.zoom='20%'")
           logAndPrint("Running get on "+searchURL+"?pi="+str(lastloadIndex+1))
+          legacyContentLenght = 0
           lastloadIndex += 1
           time.sleep(2)
         else:
           lastloadIndex = currentLoadIndex
 
         source = driver.page_source
-        print("Size :", getsizeof(source))
-
-        execTime = time.time()
-        soup = BeautifulSoup(source, 'lxml')
-        print(time.time()-execTime)
-
-        
+        cropped = source[startIndex:endIndex]
+        cropped = cropped[cropped.find('<div class="p-card-wrppr with-campaign-view"'):]
+        cropped =cropped[legacyContentLenght:-6]
+        legacyContentLenght += len(cropped[0: -6])
+    
+        soup = BeautifulSoup("<div>"+cropped, 'lxml')    
         cards = soup.find_all("div", {"class": "p-card-wrppr"})        
+
+        print("Found "+str(len(cards))+" cards")
 
         if(len(cards) == 0):
           logAndPrint("No cards were found, skipping")
@@ -220,19 +227,67 @@ def fetchLinks(driver):
         continue
 
 
-downloadTry = 0
+
 def downloader(url,name):
-  global downloadTry
   try:
-    urllib.request.urlretrieve(url,name)
-    downloadTry = 0
+    urllib.request.urlretrieve(url,name)    
     return True
   except:
-    if(downloadTry<2):
-      logAndPrint("Error on " +url+ ", trying again...")
-      downloadTry+=1
-      time.sleep(0.5)
-      downloader(url,name)
+    return False
+
+
+def scrapePage(url):
+  global get_pic_counter
+  global finished
+  global total_counter
+
+  try:
+    fileNameHeader = url.split("/")[-1].split("?")[0]
+    prefixWW = prefixW()
+
+
+    if(checkIfFileExists(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"))):
+      logAndPrint("File already exists, skipping...")
+      return
+    
+    r =requests.get("https://trendyol.com"+url)
+    searched = re.search("""(?<=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__=)(.*)(?=;window.TYPageName=")""", r.content.decode('utf-8')).group()
+    parsedJSON = json.loads(searched)
+
+    metadata= {}
+    metadata["name"] = parsedJSON["product"]["name"]
+    metadata["color"] = parsedJSON["product"]["color"]
+    metadata["url"] = parsedJSON["product"]["url"]
+    metadata["gender"] = parsedJSON["product"]["gender"]
+    metadata["brand"] = parsedJSON["product"]["brand"]
+    metadata["attributes"]  = parsedJSON["product"]["attributes"] 
+    
+
+    with open(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"), 'w', encoding='utf8') as outfile:
+      json.dump(metadata, outfile, ensure_ascii=False)
+      if isNoDownload:
+        logAndPrint("Metadata for "+ str(get_pic_counter) +" is saved")
+    
+    pic_variant_counter = 0
+    for imgURL in parsedJSON["product"]["images"]:
+      fullURL = "https://cdn.dsmcdn.com/"+imgURL
+      if(isListUrLs):
+        
+        with open(os.path.join(rootPath,prefixWW+"imageUrls.txt"), "a") as fff:
+          fff.write("{0},{1},{2}".format(prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg",pic_variant_counter,fullURL))
+          fff.write("\n")
+      if(not isNoDownload):
+        if(downloader(fullURL, os.path.join(rootPath,prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg"))):
+          logAndPrint(str(get_pic_counter) + " - downloaded " + fullURL)
+      
+      pic_variant_counter += 1
+      total_counter +=1
+    get_pic_counter += 1
+  except Exception as e: 
+    logAndPrint(e)
+    logAndPrint(traceback.format_exc())
+
+
 
 
 
@@ -241,66 +296,20 @@ def downloadImages():
   global finished
   global total_counter
 
-  while (True): 
-    if(productQueue.empty()):
-      if(finished):
-        time.sleep(15)
-        return
-      else:
-        continue
-    continue
+  with concurrent.futures.ThreadPoolExecutor() as executor:
+    while (True): 
+      if(productQueue.empty()):
+        if(finished):
+          break
+        else:
+          continue
 
-    try:
       if(total_counter >= maximum):
-        finished = True
-        return
+          finished = True
+          break
 
       urls = productQueue.get()
-      fileNameHeader = urls.split("/")[-1].split("?")[0]
-      prefixWW = prefixW()
-
-
-      if(checkIfFileExists(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"))):
-        logAndPrint("File already exists, skipping...")
-        continue
-      
-      r =requests.get("https://trendyol.com"+urls)
-      searched = re.search("""(?<=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__=)(.*)(?=;window.TYPageName=")""", r.content.decode('utf-8')).group()
-      parsedJSON = json.loads(searched)
-
-      metadata= {}
-      metadata["name"] = parsedJSON["product"]["name"]
-      metadata["color"] = parsedJSON["product"]["color"]
-      metadata["url"] = parsedJSON["product"]["url"]
-      metadata["gender"] = parsedJSON["product"]["gender"]
-      metadata["brand"] = parsedJSON["product"]["brand"]
-      metadata["attributes"]  = parsedJSON["product"]["attributes"] 
-      
-
-      with open(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"), 'w', encoding='utf8') as outfile:
-        json.dump(metadata, outfile, ensure_ascii=False)
-        if isNoDownload:
-          logAndPrint("Metadata for "+ str(get_pic_counter) +" is saved")
-      
-      pic_variant_counter = 0
-      for imgURL in parsedJSON["product"]["images"]:
-        fullURL = "https://cdn.dsmcdn.com/"+imgURL
-        if(isListUrLs):
-          
-          with open(os.path.join(rootPath,prefixWW+"imageUrls.txt"), "a") as fff:
-            fff.write("{0},{1},{2}".format(prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg",pic_variant_counter,fullURL))
-            fff.write("\n")
-        if(not isNoDownload):
-          if(downloader(fullURL, os.path.join(rootPath,prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg"))):
-            logAndPrint(str(get_pic_counter) + " - downloaded " + fullURL)
-        
-        pic_variant_counter += 1
-        total_counter +=1
-      get_pic_counter += 1
-    except Exception as e: 
-      logAndPrint(e)
-      logAndPrint(traceback.format_exc())
-      continue
+      executor.submit(scrapePage, urls)
   
     
 def clearBuffer():
@@ -317,26 +326,21 @@ def Scrape(searchURL):
     driver1.get(searchURL)
     driver1.execute_script("document.body.style.zoom='20%'")
 
-    # Log in to Pinterest.com
 
     logAndPrint("Starting threads...")
-    valid_urls = []
- 
-    time.sleep(3)
 
-    logAndPrint("Fetching search results...")
-    
+
+    logAndPrint("Fetching search results...")    
     t1 = threading.Thread(target=fetchLinks, args=(driver1,), daemon=True)
     t1.start()
 
-    time.sleep(8)
+    time.sleep(3)
    
     logAndPrint("Downloading pictures...")
-
-    #t2 = threading.Thread(target=downloadImages, args=(), daemon=True)
-    #t2.start()
+    t2 = threading.Thread(target=downloadImages, args=(), daemon=True)
+    t2.start()
     
-    t1.join()
+    t2.join()
 
     logAndPrint("Done")
 
@@ -346,9 +350,6 @@ def main():
   global driver1
 
   driver1 = webdriver.Chrome('chromedriver',options=chrome_options)
-
-
-
 
 
   if(urlsPath == None):

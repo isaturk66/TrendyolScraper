@@ -181,7 +181,7 @@ def fetchLinks(driver):
 
         if(currentLoadIndex < lastloadIndex):
           driver.get(searchURL+"?pi="+str(lastloadIndex+1))
-          driver1.execute_script("document.body.style.zoom='20%'")
+          scraperWebDriver.execute_script("document.body.style.zoom='20%'")
           logAndPrint("Running get on "+searchURL+"?pi="+str(lastloadIndex+1))
           legacyContentLenght = 0
           lastloadIndex += 1
@@ -203,9 +203,9 @@ def fetchLinks(driver):
         if(len(cards) == 0):
           if(legacyContentLenght == len(cropped[0: -6])):
             logAndPrint("No cards were found, skipping")
+            return
           if(time.time() - lastFindTime > 10):
             logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
-            finished = True
             return
 
         for card in cards:
@@ -287,8 +287,6 @@ def scrapePage(url):
 
 
 
-
-
 def downloadImages():
   global get_pic_counter
   global finished
@@ -312,42 +310,30 @@ def downloadImages():
     
 def clearBuffer():
   global total_counter
-  global finished 
-  finished = False
   if(isMaxPerCategory):
     total_counter = 0
-  global downloadTry
-  downloadTry = 0  
 
 
 def Scrape(searchURL):
-    driver1.get(searchURL)
-    driver1.execute_script("document.body.style.zoom='20%'")
-
-
-    logAndPrint("Starting threads...")
-
+    scraperWebDriver.get(searchURL)
+    scraperWebDriver.execute_script("document.body.style.zoom='20%'")
 
     logAndPrint("Fetching search results...")    
-    t1 = threading.Thread(target=fetchLinks, args=(driver1,), daemon=True)
-    t1.start()
-
-    time.sleep(3)
-   
-    logAndPrint("Downloading pictures...")
-    t2 = threading.Thread(target=downloadImages, args=(), daemon=True)
-    t2.start()
-    
-    t2.join()
-
-    logAndPrint("Done")
+    fetcherThread = threading.Thread(target=fetchLinks, args=(scraperWebDriver,), daemon=True)
+    fetcherThread.start()
+    fetcherThread.join()
 
 
 
 def main():
-  global driver1
+  global scraperWebDriver
 
-  driver1 = webdriver.Chrome('chromedriver',options=chrome_options)
+  scraperWebDriver = webdriver.Chrome('chromedriver',options=chrome_options)
+
+
+  logAndPrint("Starting downloader...")
+  downloaderThread = threading.Thread(target=downloadImages, args=(), daemon=True)
+  downloaderThread.start()
 
 
   if(urlsPath == None):
@@ -364,6 +350,9 @@ def main():
         logAndPrint(e)
         logAndPrint(traceback.format_exc())
       clearBuffer()
+
+  downloaderThread.join()
+  logAndPrint("Done")
 
 if __name__ == "__main__":
   start_time = time.time()

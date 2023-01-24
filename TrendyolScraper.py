@@ -111,14 +111,8 @@ createDir(rootPath)
 createDir(rootPath+"/meta")
 
 
-try:
-  fileList = os.listdir(rootPath)
-  if (len(fileList) == 0):
-    startIndex= int(fileList[-1][0:-4])+1
-  else:
-    startIndex = 0
-except:
-  startIndex= 0
+
+startIndex= 0
 
 
 
@@ -152,76 +146,103 @@ def page_is_loaded(driver):
     return driver.find_element_by_tag_name("body") != None
 
 
-def fetchLinks(driver):
-    global searchURL
+def fetchLinks(driver):    
     global finished
 
     list_counter = 0
+    try_counter = 0
     # Does this until you have maximum items or the program has gone on for long enough, meaning that it reached the end of results
     lastFindTime = time.time()
-    lastloadIndex = 0
+    lastloadIndex = 1
 
     source = driver.page_source
     startIndex= source.find('<div class="prdct-cntnr-wrppr">')
     endIndex = -(len(source)-source.find('<div class="virtual"></div>'))
 
     legacyContentLenght = 0
+    reloadPageEverytimeMode = False
 
-  
     while True:
+      iterationStart = time.time()
       try:
+        if(lastloadIndex >= 98):
+          reloadPageEverytimeMode = True
+
         if(list_counter >= maximum):
           print("Maximum number of items reached")
           return
 
-        try:
-          currentLoadIndex = int(driver.current_url.split("pi=")[1])
-        except:
-          currentLoadIndex = 0
 
-        if(currentLoadIndex < lastloadIndex):
-          driver.get(searchURL+"?pi="+str(lastloadIndex+1))
-          scraperWebDriver.execute_script("document.body.style.zoom='20%'")
-          logAndPrint("Running get on "+searchURL+"?pi="+str(lastloadIndex+1))
+        if(reloadPageEverytimeMode):
+          logAndPrint("Page load failed, trying again with "+url+"?pi="+str(lastloadIndex+1))
+          driver.get(url+"?pi="+str(lastloadIndex+1))
+          driver.execute_script("document.body.style.zoom='20%'")
+          logAndPrint("Running get on "+url+"?pi="+str(lastloadIndex+1))
           legacyContentLenght = 0
-          lastloadIndex += 1
-          time.sleep(2)
-        else:
-          lastloadIndex = currentLoadIndex
+          time.sleep(2)        
         
-        source = driver.page_source
+        
+
+
+        source = driver.page_source      
+
+
         cropped = source[startIndex:endIndex]
         cropped = cropped[cropped.find('<div class="p-card-wrppr with-campaign-view"'):]
         cropped =cropped[legacyContentLenght:-6]
+
+
+
         legacyContentLenght += len(cropped[0: -6])
-    
-        soup = BeautifulSoup("<div>"+cropped, 'lxml')    
-        cards = soup.find_all("div", {"class": "p-card-wrppr"})        
+        soup = BeautifulSoup("<div>"+cropped, 'lxml')
+        cards = soup.find_all("div", {"class": "p-card-wrppr"})          
+
 
         if(len(cards) == 0):
           if(legacyContentLenght == len(cropped[0: -6])):
-            logAndPrint("No cards were found, skipping")
+            if(try_counter == 2):
+              logAndPrint("No cards were found, skipping")
+              return
+            try_counter += 1
+            continue
+          if(time.time() - lastFindTime > 20):
+            logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
             return
-          if(time.time() - lastFindTime > 10):
+        
+        
+        for card in cards:
+          for a in card.find_all("a"):
+            lurl = a.get("href")
+            if lurl not in valid_urls:
+              valid_urls.append(lurl)
+              productQueue.put(lurl)
+              lastFindTime = time.time()
+              list_counter += 1
+
+        currentUrl = driver.current_url
+
+        if "?pi=" in currentUrl:
+          if(lastloadIndex >  int(currentUrl.split("pi=")[1])):
             logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
             return
 
-        for card in cards:
-          for a in card.find_all("a"):
-            url = a.get("href")
-            if url not in valid_urls:
-              valid_urls.append(url)
-              productQueue.put(url)
-              lastFindTime = time.time()
-              list_counter += 1
-        driver.execute_script("window.scrollBy(0,200000)")
-        time.sleep(2)
+          lastloadIndex = int(currentUrl.split("pi=")[1])
+        else:
+          lastloadIndex = 1
+
+          if(lastloadIndex >  1):
+            logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
+            return
         
-        
+        if(not reloadPageEverytimeMode):
+          driver.execute_script("window.scrollBy(0,200000)")        
+
+        time.sleep(0.5)
       except Exception as e:
         logAndPrint(e)
-        continue
+        logAndPrint(traceback.format_exc())
 
+      print("Iteration took "+str(time.time()-iterationStart)+" seconds")
 
 
 def downloader(url,name):
@@ -263,6 +284,7 @@ def scrapePage(url):
       json.dump(metadata, outfile, ensure_ascii=False)
       if isNoDownload:
         logAndPrint("Metadata for "+ str(get_pic_counter) +" is saved")
+        pass
     
     pic_variant_counter = 0
     for imgURL in parsedJSON["product"]["images"]:
@@ -299,7 +321,6 @@ def downloadImages():
         else:
           time.sleep(0.1)
           continue
-      
 
       if(total_counter >= maximum):
           finished = True

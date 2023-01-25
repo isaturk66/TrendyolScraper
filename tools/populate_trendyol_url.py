@@ -271,6 +271,6 @@ async def main():
 
 if __name__ == "__main__":
     start_time = time.time()
-    asyncio.get_event_loop().run_until_complete(main())
+    asyncio.run(main())
     print("--- %s seconds ---" % (time.time() - start_time))
     exit()

@@ -21,7 +21,6 @@ from pyppeteer import errors as pyppeteer_errors
 
 
 
-
 ##TODO:
 ##  Fix printing issues with multithreading
 ##    -  Solve overlapping printing

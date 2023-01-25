@@ -52,7 +52,7 @@ def generatePriceTree(argtree):
     priceList = [str(i) + "-" + str(i+5) for i in range(0, 1000, 5)]
     priceList.append("1000-10000")
 
-    for price in priceList[15:25]:
+    for price in priceList:
         argtree[PRICE_ARGNAME +"="+  price] = None
 
     return argtree

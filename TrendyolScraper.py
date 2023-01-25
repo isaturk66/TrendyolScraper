@@ -2,7 +2,6 @@
 from glob import glob
 from bs4 import BeautifulSoup
 import time
-from selenium import webdriver
 import threading
 import argparse
 import sys
@@ -15,23 +14,20 @@ import urllib.request
 import traceback
 from queue import Queue
 import logging
-import lxml
 import concurrent.futures
+import asyncio
+from pyppeteer import launch
+from pyppeteer import errors as pyppeteer_errors
 
 
-logging.basicConfig(filename='trendolscraper_'+str(time.time())+'.log', level=logging.INFO,  format='%(asctime)s %(message)s')
+
+##TODO:
+##  Fix printing issues with multithreading
+##    -  Solve overlapping printing
+##    -  Solve numbers not incrementing properly when printing
 
 
-sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument("enable-automation")
-chrome_options.add_argument("start-maximized")
-chrome_options.add_argument('--disable-dev-shm-usage')
-chrome_options.add_argument("--disable-browser-side-navigation")
-chrome_options.add_argument("--disable-gpu")
 
 doneURLs = []
 def parse_args():
@@ -63,7 +59,7 @@ def parse_args():
 
 def logAndPrint(message):
   logging.info(message)
-  print(message)
+  print(message,end='\n',flush=True)
 
 def createDir(path):
   if not os.path.exists(path):
@@ -109,8 +105,10 @@ finished = False
 
 createDir(rootPath)
 createDir(rootPath+"/meta")
+createDir(os.path.join(os.path.dirname(__file__), "logs"))
 
 
+logging.basicConfig(filename= os.path.join(os.path.dirname(__file__), "logs",'trendolscraper_'+str(time.time())+'.log'), level=logging.INFO,  format='%(asctime)s %(message)s')
 
 startIndex= 0
 
@@ -141,75 +139,136 @@ def prefixW():
     prefixW = prefix+"-"
   return prefixW
 
-# Determines if the page is loaded yet.
-def page_is_loaded(driver):
-    return driver.find_element_by_tag_name("body") != None
+  
+async def getPage(pageUrl , firstRecursion = True):
+
+  try:
+    await page.goto(pageUrl)
+    await page.waitForFunction("""() => document.querySelectorAll('.search-landings-container, .prdct-cntnr-wrppr , .errorpagewrapper, .no-rslt-icon').length""", timeout=10000)
+    await page.evaluate("document.body.style.zoom='20%'")
+
+  except pyppeteer_errors.TimeoutError:
+    if(firstRecursion):
+      logAndPrint("!!! Page get timed out , trying again with "+pageUrl)
+      return await getPage(pageUrl, False)
+    else:
+      logAndPrint("!!! Page get timed out , giving up with "+pageUrl)
+      return False
+  except pyppeteer_errors.NetworkError:
+    logAndPrint("!!! Page get network error , trying again with "+pageUrl)
+    if(firstRecursion):
+      return await getPage(pageUrl, False)
+    else:
+      logAndPrint("!!! Page get network error , giving up with "+pageUrl)
+      return False
 
 
-def fetchLinks(driver):    
+
+async def fetchLinks():    
     global finished
 
     list_counter = 0
     try_counter = 0
-    # Does this until you have maximum items or the program has gone on for long enough, meaning that it reached the end of results
+    iteration_counter = 0
+    
     lastFindTime = time.time()
     lastloadIndex = 1
-
-    source = driver.page_source
-    startIndex= source.find('<div class="prdct-cntnr-wrppr">')
-    endIndex = -(len(source)-source.find('<div class="virtual"></div>'))
 
     legacyContentLenght = 0
     reloadPageEverytimeMode = False
 
+    DISTANCE_OF_CONTENT_FROM_BOTTOM = 0
+    VIEWPORT_HEIGHT = 0
+
+    
+    try:
+      DISTANCE_OF_CONTENT_FROM_BOTTOM = abs(await page.evaluate("""() => {
+          const element = document.querySelector('.search-landings-container');
+          if (element) {{
+              const rect = element.getBoundingClientRect();
+              const distance = rect.top - document.body.scrollHeight;
+              return distance;
+          }}
+      }"""))
+
+      VIEWPORT_HEIGHT = await page.evaluate("""() => {
+        return window.innerHeight;
+      }""")*5
+
+
+    except TypeError as e:
+      ## Probably a bad page was loaded like a 404 error or no results page
+      ## We are doing nothing here as the reminder of the code is handling it 
+      pass
+
+
+    async def scrollToContent():
+      await page.evaluate("window.scrollTo(0,document.body.scrollHeight);")
+      time.sleep(0.1)
+
+      await page.evaluate("window.scrollBy(0,{0})".format(((VIEWPORT_HEIGHT-DISTANCE_OF_CONTENT_FROM_BOTTOM)/5)-200))  
+
+
+    
     while True:
-      iterationStart = time.time()
       try:
-        if(lastloadIndex >= 98):
+        if(lastloadIndex >= 98 and not reloadPageEverytimeMode) :
+          logAndPrint("Switching to reloadPageEverytimeMode")
           reloadPageEverytimeMode = True
 
         if(list_counter >= maximum):
-          print("Maximum number of items reached")
+          logAndPrint("Maximum number of items reached")
           return
 
 
+        
+
         if(reloadPageEverytimeMode):
-          logAndPrint("Page load failed, trying again with "+url+"?pi="+str(lastloadIndex+1))
-          driver.get(url+"?pi="+str(lastloadIndex+1))
-          driver.execute_script("document.body.style.zoom='20%'")
-          logAndPrint("Running get on "+url+"?pi="+str(lastloadIndex+1))
+          if( await getPage(url+"?pi="+str(lastloadIndex+1)) == False):
+            return
           legacyContentLenght = 0
-          time.sleep(2)        
-        
-        
+          
+
+          
+        source = await page.content()    
 
 
-        source = driver.page_source      
-
+          
+        startIndex= source.find('<div class="prdct-cntnr-wrppr">')
+        endIndex = -(len(source)-source.find('<div class="virtual"></div>'))
 
         cropped = source[startIndex:endIndex]
         cropped = cropped[cropped.find('<div class="p-card-wrppr with-campaign-view"'):]
-        cropped =cropped[legacyContentLenght:-6]
-
-
-
-        legacyContentLenght += len(cropped[0: -6])
+        cropped = cropped[legacyContentLenght:-6]
+        
         soup = BeautifulSoup("<div>"+cropped, 'lxml')
         cards = soup.find_all("div", {"class": "p-card-wrppr"})          
-
-
+        
+        
+        
+      
         if(len(cards) == 0):
-          if(legacyContentLenght == len(cropped[0: -6])):
+          if(time.time() - lastFindTime > 10):
+            logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
+            return  
+          if(iteration_counter < 3):
             if(try_counter == 2):
               logAndPrint("No cards were found, skipping")
               return
+          ## This is another failsafe
+          ## if the program got 3 times in a row no results, it will scroll up and down the page
+          ## and try again
+          if try_counter % 4 == 0 and try_counter != 0:
+            await page.evaluate("window.scrollTo(0, 0)")
+            await scrollToContent()
+            iteration_counter += 1
             try_counter += 1
             continue
-          if(time.time() - lastFindTime > 20):
-            logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
-            return
-        
-        
+          try_counter += 1
+        else:
+          try_counter = 0   
+
+
         for card in cards:
           for a in card.find_all("a"):
             lurl = a.get("href")
@@ -218,31 +277,50 @@ def fetchLinks(driver):
               productQueue.put(lurl)
               lastFindTime = time.time()
               list_counter += 1
-
-        currentUrl = driver.current_url
+            
+        ## In case this is a page with only a handful of items and single page
+        if(len(cards) < 20 and legacyContentLenght == 0):
+          logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
+          return
+            
+        
+        legacyContentLenght += len(cropped[0: -6])
+        currentUrl = page.url
 
         if "?pi=" in currentUrl:
           if(lastloadIndex >  int(currentUrl.split("pi=")[1])):
             logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
             return
-
           lastloadIndex = int(currentUrl.split("pi=")[1])
-        else:
-          lastloadIndex = 1
+        else: 
 
           if(lastloadIndex >  1):
             logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
             return
+          
+          lastloadIndex = 1
+
+        
+
         
         if(not reloadPageEverytimeMode):
-          driver.execute_script("window.scrollBy(0,200000)")        
+          if(iteration_counter % 40 == 0 and iteration_counter != 0):
+            logAndPrint("Running get on "+url+"?pi="+str(lastloadIndex+1))
+            if(await getPage(url+"?pi="+str(lastloadIndex+1)) == False):
+              return
+            legacyContentLenght = 0            
+          else:
+            await scrollToContent()
+        
 
         time.sleep(0.5)
+        
+
       except Exception as e:
         logAndPrint(e)
         logAndPrint(traceback.format_exc())
-
-      print("Iteration took "+str(time.time()-iterationStart)+" seconds")
+      
+      iteration_counter += 1
 
 
 def downloader(url,name):
@@ -336,23 +414,24 @@ def clearBuffer():
     total_counter = 0
 
 
-def Scrape(searchURL):
-    scraperWebDriver.get(searchURL)
-    scraperWebDriver.execute_script("document.body.style.zoom='20%'")
-
-    logAndPrint("Fetching search results...")    
-    fetcherThread = threading.Thread(target=fetchLinks, args=(scraperWebDriver,), daemon=True)
-    fetcherThread.start()
-    fetcherThread.join()
-
+async def Scrape(searchURL):
+  if(await getPage(searchURL) == False):
+    print("Thingy returned false")
+    return
+  time.sleep(1)
+  logAndPrint("Fetching search results...")    
+  await fetchLinks()
 
 
-def main():
-  global scraperWebDriver
+
+async def main():
+  
   global finished
+  global browser
+  global page
 
-
-  scraperWebDriver = webdriver.Chrome('chromedriver',options=chrome_options)
+  browser = await launch(headless=True, args=['--start-maximized'], defaultViewport=None)
+  page = await browser.newPage()
 
 
   logAndPrint("Starting downloader...")
@@ -360,12 +439,12 @@ def main():
   downloaderThread.start()
 
   if(urlsPath == None):
-    Scrape(url)
+    await Scrape(url)
   else:
     urls = getUrlListFromFile(urlsPath)
     for urll in urls:
       try:
-        Scrape(urll)
+        await Scrape(urll)
         logAndPrint("Done with "+urll)
       except Exception as e:
         logAndPrint("!!! AN ERROR OCCURED !!!")
@@ -381,5 +460,5 @@ def main():
 if __name__ == "__main__":
   start_time = time.time()
   assert_args()
-  main()
+  asyncio.get_event_loop().run_until_complete(main())
   logAndPrint("--- %s seconds ---" % (time.time() - start_time))

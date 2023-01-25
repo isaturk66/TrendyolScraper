@@ -1,4 +1,5 @@
 node_modules
 example.json
 Dataset
+logs
 *.log

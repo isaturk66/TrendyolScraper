@@ -238,7 +238,7 @@ async def main():
 
     url_tree = tree()
     
-    browser = await launch(headless=True, args=['--start-maximized'], defaultViewport=None)
+    browser = await launch(headless=True, args=['--start-maximized','--no-sandbox'], defaultViewport=None)
 
 
     page = await browser.newPage()

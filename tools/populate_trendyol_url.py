@@ -14,8 +14,8 @@ import os
 
 # Parse the command-line arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('url',help='The base url that will be populated',
-                        default= None, type=str)
+parser.add_argument('--url',help='The base url that will be populated',
+                        default= None, required=False, type=str)
 
 
 parser.add_argument('--path',
@@ -43,9 +43,28 @@ PRODUCT_RISKY_THRESHOLD = 10000
 ASSEMBLY_THRESHOLD = 5000
 
 def assertArgs():
+    global baseUrl
+    global path
+
+    baseUrl = args.url
+    path = args.path
+
     if baseUrl == None:
-        logAndPrint("Please specify the base url to populate.")
-        exit()
+        onvironURL = os.environ.get('URL')
+        if onvironURL != None:
+            baseUrl = onvironURL.strip()
+        else:
+            logAndPrint("Please specify the base url to populate.")
+            exit()
+    
+    if path != None:
+        if ".txt" not in path:
+            logAndPrint("The path should be to a .txt file")
+    if path == None:
+        onvironDirname = os.environ.get('DIRNAME')
+        if onvironDirname != None:
+            path = os.path.join("/Dataset",onvironDirname.strip(),"urls.txt")
+    
     if "wc=" not in baseUrl:
         logAndPrint("Please give the url in the parameter format. (https://www.trendyol.com/sr?wc=75&wg=2)")
         exit()
@@ -54,20 +73,24 @@ def assertArgs():
         exit()
 
 
-
 def tree(): return defaultdict()
+
 
 def createDir(path):
   if not os.path.exists(path):
     os.makedirs(path)
+
+def createNecessaryDirs():
+    createDir(os.path.join(os.path.dirname(__file__), "logs"))
+    if path != None:
+        createDir(path[:path.rfind("/")])
 
 def logAndPrint(message):
   logging.info(message)
   print(message,end='\n',flush=True)
 
 
-createDir(os.path.join(os.path.dirname(__file__), "logs"))
-logging.basicConfig(filename= os.path.join(os.path.dirname(__file__), "logs",'populate_trendyol_url'+str(time.time())+'.log'), level=logging.INFO,  format='%(asctime)s %(message)s')
+
 
 
 def constructUrl(url,params):
@@ -88,9 +111,7 @@ def generatePriceTree(argtree):
     return argtree
 
 
-if baseUrl == None:
-    logAndPrint("Please specify the base url to populate.")
-    exit()
+
 
 def writeTreeToFile(tree, fileName):
     treeJson = json.dumps(tree)
@@ -106,6 +127,8 @@ def writeListToFile(list, fileName):
 
 
 async def getPage(pageUrl , firstRecursion = True):
+
+    print("Getting page with url : " + pageUrl)
 
     try:
         await page.goto(pageUrl)
@@ -271,6 +294,7 @@ async def main():
 
 
     url_tree = tree()
+
     
     browser = await launch(headless=True, args=['--start-maximized','--no-sandbox'], defaultViewport=None, autoClose=False)
 
@@ -278,7 +302,6 @@ async def main():
     page = await browser.newPage()
     priceTree = generatePriceTree(url_tree)
     
-
 
     logAndPrint("Populating price tree with color information")
     populatedTree = await populateUrlsAboveThreashold(priceTree, COLOR_ARGNAME, COLOR_CONSTANTS, PRODUCT_THRESHOLD)
@@ -315,6 +338,9 @@ async def main():
 
 if __name__ == "__main__":
     start_time = time.time()
+    assertArgs()
+    createNecessaryDirs()
+    logging.basicConfig(filename= os.path.join(os.path.dirname(__file__), "logs",'populate_trendyol_url_'+str(time.time())+'.log'), level=logging.INFO,  format='%(asctime)s %(message)s')
     asyncio.run(main())
     logAndPrint("--- %s seconds ---" % (time.time() - start_time))
     exit()

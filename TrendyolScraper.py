@@ -1,10 +1,8 @@
 # Import necessary libraries
-from glob import glob
 from bs4 import BeautifulSoup
 import time
 import threading
 import argparse
-import sys
 from os.path import exists
 import os
 import json

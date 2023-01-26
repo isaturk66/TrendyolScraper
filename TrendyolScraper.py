@@ -301,8 +301,6 @@ async def fetchLinks():
           lastloadIndex = 1
 
         
-
-        
         if(not reloadPageEverytimeMode):
           if(iteration_counter % 40 == 0 and iteration_counter != 0):
             logAndPrint("Running get on "+url+"?pi="+str(lastloadIndex+1))
@@ -368,10 +366,15 @@ def scrapePage(url):
     for imgURL in parsedJSON["product"]["images"]:
       fullURL = "https://cdn.dsmcdn.com/"+imgURL
       if(isListUrLs):
-        
         with open(os.path.join(rootPath,prefixWW+"imageUrls.txt"), "a") as fff:
           fff.write("{0},{1},{2}".format(prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg",pic_variant_counter,fullURL))
           fff.write("\n")
+        
+        with open(os.path.join(rootPath,prefixWW+"productUrls.txt"), "a") as fff:
+          fff.write("{0},{1}".format(prefixWW + fileNameHeader, "https://trendyol.com"+url ))
+          fff.write("\n")
+
+
       if(not isNoDownload):
         if(downloader(fullURL, os.path.join(rootPath,prefixWW + fileNameHeader +"_"+str(pic_variant_counter)+".jpg"))):
           logAndPrint(str(get_pic_counter) + " - downloaded " + fullURL)

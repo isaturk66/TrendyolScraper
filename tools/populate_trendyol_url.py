@@ -14,8 +14,8 @@ import os
 
 # Parse the command-line arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('--url',help='The base url that will be populated',
-                        default= None, required=False, type=str)
+parser.add_argument('url',help='The base url that will be populated',
+                        default= None, type=str)
 
 
 parser.add_argument('--path',
@@ -50,16 +50,13 @@ def assertArgs():
     path = args.path
 
     if baseUrl == None:
-        onvironURL = os.environ.get('URL')
-        if onvironURL != None:
-            baseUrl = onvironURL.strip()
-        else:
-            logAndPrint("Please specify the base url to populate.")
-            exit()
-    
+       logAndPrint("Please specify the base url to populate.")
+       exit()
+            
     if path != None:
         if ".txt" not in path:
             logAndPrint("The path should be to a .txt file")
+
     if path == None:
         onvironDirname = os.environ.get('DIRNAME')
         if onvironDirname != None:
@@ -127,9 +124,6 @@ def writeListToFile(list, fileName):
 
 
 async def getPage(pageUrl , firstRecursion = True):
-
-    print("Getting page with url : " + pageUrl)
-
     try:
         await page.goto(pageUrl)
         await page.waitForFunction("""() => document.querySelectorAll('.search-landings-container, .prdct-cntnr-wrppr , .errorpagewrapper, .no-rslt-icon').length""", timeout=10000)
@@ -212,8 +206,6 @@ async def populateUrlsAboveThreashold(urlThree, argname, populatees, threashold,
 
         urlThree[key] = branchTree
 
-        
-
     return urlThree
 
 
@@ -224,7 +216,6 @@ def multiParamMerger(rawparams):
         for param in params:
             param_string += param + char
         return param_string[:-1]
-
 
     if(len(rawparams) == 0):
         return []
@@ -245,11 +236,14 @@ def multiParamMerger(rawparams):
         param_vals = [param.split("|")[1] for param in rawparams]
         return [FIT_ARGNAME + "=179|"+ assamble_string(param_vals,"_")]
 
-
     if(PRICE_ARGNAME in rawparams[0]):
-        return [rawparams[0]]
 
-    
+        pricePairs = [[int(prc) for prc in param.split("=")[1].split("-")] for param in rawparams]
+
+        minPrice = min([pair[0] for pair in pricePairs])
+        maxPrice = max([pair[1] for pair in pricePairs])
+
+        return [PRICE_ARGNAME + "=" + str(minPrice) + "-" + str(maxPrice)]
 
     raise Exception("Unknown multi param type")
 
@@ -278,8 +272,8 @@ def AssembleUrlList(urlTree, legacyArgs = []):
                 buffer = [key]
                 buffer_counter = urlTree[key]
                 continue
-
             buffer.append(key)
+
             buffer_counter += urlTree[key]
     
     urlList.append(constructUrl(baseUrl, legacyArgs + multiParamMerger(buffer)))
@@ -320,19 +314,27 @@ async def main():
     populatedTree = await populateUrlsAboveThreashold(populatedTree, "", "", float('inf'))
 
     populatedUrlList = AssembleUrlList(populatedTree)
-
-    # For debugging purposes
-    writeTreeToFile(populatedTree, "populated_tree_"+str(time.time())+".txt")
     
 
     if(path != None):
-        filename = path
+        urlFilename = path
+        
+        if "/" in urlFilename:
+            treeFilename = os.path.join(urlFilename[:urlFilename.rfind("/")], "populated_tree_"+str(time.time())+".txt")
+        else:
+            treeFilename = "populated_tree_"+str(time.time())+".txt"
     else:
-        filename = "populated_urls_"+str(time.time())+".txt"
+        urlFilename = "populated_urls_"+str(time.time())+".txt"
+        treeFilename = "populated_tree_"+str(time.time())+".txt"
 
-    writeListToFile(populatedUrlList, filename)
 
-    logAndPrint("Generated {0} with {1} urls".format(filename, len(populatedUrlList)))
+    writeListToFile(populatedUrlList, urlFilename)
+
+    # For debugging purposes
+    writeTreeToFile(populatedTree, treeFilename)
+
+
+    logAndPrint("Generated {0} with {1} urls".format(urlFilename, len(populatedUrlList)))
 
     await browser.close()
 

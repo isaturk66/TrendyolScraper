@@ -18,13 +18,10 @@ from pyppeteer import launch
 from pyppeteer import errors as pyppeteer_errors
 
 
-
 ##TODO:
 ##  Fix printing issues with multithreading
 ##    -  Solve overlapping printing
 ##    -  Solve numbers not incrementing properly when printing
-
-
 
 
 doneURLs = []
@@ -100,6 +97,9 @@ valid_urls = []
 
 finished = False
 
+HEADLESS = True
+BROWSER_ARGS = [ "--start-maximized","--no-sandbox", "--disable-dev-shm-usage", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions", "-v /dev/shm:/dev/shm"]
+
 
 createDir(rootPath)
 createDir(rootPath+"/meta")
@@ -137,10 +137,31 @@ def prefixW():
     prefixW = prefix+"-"
   return prefixW
 
-  
-async def getPage(pageUrl , firstRecursion = True):
+
+
+async def restartBrowser():
+  global browser
+  global page
+  logAndPrint("Restarting browser...")
 
   try:
+    await page.close()
+    await browser.close()
+  except NameError:
+    # This is the first initilization of page and browser
+    # Do nothing, go ahead and initilize
+    pass
+  
+  browser = await launch(headless= HEADLESS, args= BROWSER_ARGS, defaultViewport=None)
+  page = await browser.newPage()
+
+  
+async def getPage(pageUrl , firstRecursion = True):
+  try:
+    if not firstRecursion:
+      await restartBrowser()
+      logAndPrint("Restart complete")
+
     await page.goto(pageUrl)
     await page.waitForFunction("""() => document.querySelectorAll('.search-landings-container, .prdct-cntnr-wrppr , .errorpagewrapper, .no-rslt-icon').length""", timeout=10000)
     await page.evaluate("document.body.style.zoom='20%'")
@@ -162,7 +183,15 @@ async def getPage(pageUrl , firstRecursion = True):
 
 
 
-async def fetchLinks():    
+def prepareUrlWithPi(url,pi):
+  if "?" in url:
+    return url+"&pi="+str(pi)
+  else:
+    return url+"?pi="+str(pi)
+
+
+
+async def fetchLinks(scrapingURL):    
     global finished
 
     list_counter = 0
@@ -178,7 +207,6 @@ async def fetchLinks():
     DISTANCE_OF_CONTENT_FROM_BOTTOM = 0
     VIEWPORT_HEIGHT = 0
 
-    
     try:
       DISTANCE_OF_CONTENT_FROM_BOTTOM = abs(await page.evaluate("""() => {
           const element = document.querySelector('.search-landings-container');
@@ -210,26 +238,19 @@ async def fetchLinks():
     
     while True:
       try:
-        if(lastloadIndex >= 98 and not reloadPageEverytimeMode) :
-          logAndPrint("Switching to reloadPageEverytimeMode")
-          reloadPageEverytimeMode = True
 
         if(list_counter >= maximum):
           logAndPrint("Maximum number of items reached")
           return
 
 
-        
-
-        if(reloadPageEverytimeMode):
-          if( await getPage(url+"?pi="+str(lastloadIndex+1)) == False):
+        if(reloadPageEverytimeMode):          
+          if(await getPage(prepareUrlWithPi(scrapingURL,lastloadIndex+1)) == False):
             return
           legacyContentLenght = 0
-          
 
           
         source = await page.content()    
-
 
           
         startIndex= source.find('<div class="prdct-cntnr-wrppr">')
@@ -241,12 +262,11 @@ async def fetchLinks():
         
         soup = BeautifulSoup("<div>"+cropped, 'lxml')
         cards = soup.find_all("div", {"class": "p-card-wrppr"})          
-        
-        
-        
+             
       
         if(len(cards) == 0):
           if(time.time() - lastFindTime > 10):
+            logAndPrint("Last find timeout, exiting")
             logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
             return  
           if(iteration_counter < 3):
@@ -273,41 +293,41 @@ async def fetchLinks():
             if lurl not in valid_urls:
               valid_urls.append(lurl)
               productQueue.put(lurl)
-              lastFindTime = time.time()
               list_counter += 1
+            lastFindTime = time.time()
             
         ## In case this is a page with only a handful of items and single page
         if(len(cards) < 20 and legacyContentLenght == 0):
           logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
           return
-            
+    
         
         legacyContentLenght += len(cropped[0: -6])
         currentUrl = page.url
 
-        if "?pi=" in currentUrl:
+        if "pi=" in currentUrl:
           if(lastloadIndex >  int(currentUrl.split("pi=")[1])):
             logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
             return
           lastloadIndex = int(currentUrl.split("pi=")[1])
         else: 
-
           if(lastloadIndex >  1):
             logAndPrint("Fetching process is completed with "+str(len(valid_urls))+ " results found") 
             return
-          
           lastloadIndex = 1
-
         
+        if(lastloadIndex >= 97 and not reloadPageEverytimeMode) :
+          logAndPrint("Switching to reloadPageEverytimeMode")
+          reloadPageEverytimeMode = True
+
         if(not reloadPageEverytimeMode):
           if(iteration_counter % 40 == 0 and iteration_counter != 0):
-            logAndPrint("Running get on "+url+"?pi="+str(lastloadIndex+1))
-            if(await getPage(url+"?pi="+str(lastloadIndex+1)) == False):
+            logAndPrint("Running get on "+prepareUrlWithPi(scrapingURL,lastloadIndex+1))
+            if(await getPage(prepareUrlWithPi(scrapingURL,lastloadIndex+1)) == False):
               return
             legacyContentLenght = 0            
           else:
             await scrollToContent()
-        
 
         time.sleep(0.5)
         
@@ -339,6 +359,7 @@ def scrapePage(url):
 
     if(checkIfFileExists(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"))):
       logAndPrint("File already exists, skipping...")
+      logAndPrint("Url is "+url)
       return
     
     r =requests.get("https://trendyol.com"+url)
@@ -416,24 +437,26 @@ def clearBuffer():
 
 
 async def Scrape(searchURL):
-  if(await getPage(searchURL) == False):
-    print("Thingy returned false")
-    return
-  time.sleep(1)
-  logAndPrint("Fetching search results...")    
-  await fetchLinks()
+  try:
+    await restartBrowser()
+
+    if(await getPage(searchURL) == False):
+      logAndPrint("Failed to get page")
+      return
+    time.sleep(1)
+    logAndPrint("Fetching search results...")    
+    await fetchLinks(searchURL)
+
+  except IOError:
+    ##OSError: Unable to remove Temporary User Data
+    ## Do nothing
+    pass
 
 
 
 async def main():
   
   global finished
-  global browser
-  global page
-
-  browser = await launch(headless=True, args=['--start-maximized','--no-sandbox'], defaultViewport=None)
-  page = await browser.newPage()
-
 
   logAndPrint("Starting downloader...")
   downloaderThread = threading.Thread(target=downloadImages, args=(), daemon=True)
@@ -445,8 +468,11 @@ async def main():
     urls = getUrlListFromFile(urlsPath)
     for urll in urls:
       try:
+    
         await Scrape(urll)
         logAndPrint("Done with "+urll)
+        time.sleep(4)
+
       except Exception as e:
         logAndPrint("!!! AN ERROR OCCURED !!!")
         logAndPrint("Error on "+urll)

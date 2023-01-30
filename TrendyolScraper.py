@@ -359,7 +359,6 @@ def scrapePage(url):
 
     if(checkIfFileExists(os.path.join(rootPath,"meta",prefixWW + fileNameHeader +".meta"))):
       logAndPrint("File already exists, skipping...")
-      logAndPrint("Url is "+url)
       return
     
     r =requests.get("https://trendyol.com"+url)

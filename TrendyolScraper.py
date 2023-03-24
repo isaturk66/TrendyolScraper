@@ -97,7 +97,7 @@ valid_urls = []
 
 finished = False
 
-HEADLESS = True
+HEADLESS = False
 BROWSER_ARGS = [ "--start-maximized","--no-sandbox", "--disable-dev-shm-usage", "--disable-dev-shm-usage", "--disable-gpu", "--disable-extensions", "-v /dev/shm:/dev/shm"]
 
 

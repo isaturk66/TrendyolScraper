@@ -19,7 +19,7 @@ def parse_args():
                     help='Create a .xlsx file with overall attribute and category details of all metadata files in the directory')
     parser.add_argument('-csv', action='store_true', default=False,
                     dest='csv',
-                    help='Create a .csv with attribute list, this mode is needed to be used alongside with --whitelist argument')
+                    help='Create a .csv with attribute list, this mode is needed to be used alongside with --labelmap argument')
     parser.add_argument('--path',
                         dest='path', help='The path that contains .meta files',
                         required=True, type=str)
@@ -147,6 +147,8 @@ def writeToTxt(list):
 def main():   
     global listOfImages
     global labelMap
+
+    parseErrors = 0    
     
     if(isCSVMode): 
         try:
@@ -157,21 +159,29 @@ def main():
             print("Could not find the file "+labelMapPath)
             return
 
-    listOfImages = glob.glob(path+'/*.jpg')
+    if(isCSVMode):
+        print("Fetching image paths...")
+        listOfImages = glob.glob(path+'/*.jpg')
+
+
+    print("Fetching meta files...")
     metaFilePaths=  glob.glob(path+'/*.meta')
     for metaFilePath in tqdm(metaFilePaths):
-        metaFile = open(metaFilePath,encoding='utf-8')
-
-
-        meta = json.load(metaFile)
-
-        getAttributes(metaFilePath.split("/")[-1],meta)
-
-
+        try:
+            metaFile = open(metaFilePath,encoding='utf-8')
+            meta = json.load(metaFile)
+            getAttributes(metaFilePath.split("/")[-1],meta)
+        except KeyError:
+            print("KeyError in parsing "+metaFilePath)
+            parseErrors += 1
+        except Exception as e:
+            print("An exception occurred during parsing "+metaFilePath)
+            parseErrors += 1
         ## Remove this to iterate through whole directory
         ## Only for testing
         #break 
-        
+    
+    print("Parsing finished with "+str(parseErrors)+" errors")
     
 
     if isCSVMode:
@@ -206,10 +216,5 @@ def main():
             print(e)
         
         
-    
-    
-
-    
-
 if __name__ == "__main__":
   main()

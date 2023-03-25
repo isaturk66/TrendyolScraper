@@ -9,7 +9,7 @@ from multiprocessing.pool import ThreadPool
 #Get arguments using argperse library for the path of the file and the path of the directory where the images will be downloaded
 def parse_args():
     parser = argparse.ArgumentParser(description='Download images from a list of URLs')
-    parser.add_argument('--file', type=str, help='Path to the file containing the URLs', required=True)
+    parser.add_argument('file', type=str, help='Path to the file containing the URLs')
     parser.add_argument('--dir', type=str, help='Path to the directory where the images will be downloaded', default=".")
     parser.add_argument('--prefix',dest='prefix', help='A prefix that will be put in front of all files downloaded, use this if you are going to make multiple downloads on the same directory. No prefix at default',default="", type=str)
     args = parser.parse_args()

@@ -40,14 +40,14 @@ def read_urls(filename):
         return lines
 
 
-def download_url(args):
-    t0 = time.time()
-    imageNumber, variantNumber,  url = args[0], args[1], args[2]
+def download_url(args):    
     try:
-        ext = url.split('.')[-1]
+        t0 = time.time()
+        imageNumber, variantNumber,  url = args[0], args[1], args[2]
+
         r = requests.get(url)
 
-        with open(os.path.join(dirPath,prefix+imageNumber+'_'+variantNumber+'.'+ext), 'wb') as f:
+        with open(os.path.join(dirPath,prefix+imageNumber), 'wb') as f:
             f.write(r.content)
         return(url, time.time() - t0)
 
@@ -68,18 +68,10 @@ def download_parallel(args):
 
 def main():
     urls = read_urls(filePath)
+    urls = sorted(urls, key=lambda x: x[0])
+
     download_parallel(urls)
     
-
-
-
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
   main()

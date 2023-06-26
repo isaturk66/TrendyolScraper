@@ -20,11 +20,17 @@ def parse_args():
     parser.add_argument('-csv', action='store_true', default=False,
                     dest='csv',
                     help='Create a .csv with attribute list, this mode is needed to be used alongside with --labelmap argument')
+    parser.add_argument('-lst', action='store_true', default=False,
+                    dest='lst',
+                    help='Create a list of all names for attributes')
     parser.add_argument('--path',
                         dest='path', help='The path that contains .meta files',
                         required=True, type=str)
     parser.add_argument('--labelmap',
                         dest='labelmap', help='The path to the .json file that contains the labelmap for .csv file ',
+                        required=False, default="siksok34234", type=str)
+    parser.add_argument('--categories',
+                        dest='categories', help='The path to the txt file that contains the categories',
                         required=False, default="siksok34234", type=str)
     args = parser.parse_args()
     return args
@@ -39,6 +45,7 @@ isCSVMode = args.csv
 isXLSXMode = args.xlsx
 
 labelMapPath = args.labelmap
+categoriesPath = args.categories
 
 assert not (isDetailsMode == False and isCSVMode == False and isXLSXMode == False), "You have to select one of three modes : -csv , -d , -xlsx "
     
@@ -48,6 +55,7 @@ assert not (isCSVMode and labelMapPath == "siksok34234"), "You have to specify a
 labelMap = None
 
 attributeMap = {}
+categorieMap = {}
 attributeMap["gender"] = [] 
 
 details =[]
@@ -114,12 +122,6 @@ def getAttributes(filename,meta):
             completeLine = [imageName.split('\\')[-1]]
             completeLine.extend(csvLine)
             csvLines.append(completeLine)
-
-
-
-        
-
-        
         
     if isDetailsMode:
         atbsStr = ""
@@ -130,7 +132,7 @@ def getAttributes(filename,meta):
 
 
 def pad_dict_list(dict_list, padel):
-    lmax = 0
+    lmax = 0    
     for lname in dict_list.keys():
         lmax = max(lmax, len(dict_list[lname]))
     for lname in dict_list.keys():
@@ -149,6 +151,17 @@ def main():
     global labelMap
 
     parseErrors = 0    
+
+    try:
+        with open(categoriesPath,encoding='utf-8') as f:
+            #Read lines of txt file with for
+            for line in f:
+                lineElements = line.strip().strip(",")
+                categorieMap[lineElements[0]] = lineElements[2:].reverse()
+    except Exception as e:
+        print("Could not find the file "+labelMapPath)
+        return
+    
     
     if(isCSVMode): 
         try:
@@ -179,7 +192,7 @@ def main():
             parseErrors += 1
         ## Remove this to iterate through whole directory
         ## Only for testing
-        #break 
+        break 
     
     print("Parsing finished with "+str(parseErrors)+" errors")
     
@@ -187,6 +200,8 @@ def main():
     if isCSVMode:
         try:
             header = ["File Name"]
+
+            ##Change this line to change the order of the columns
             for category in list(labelMap):
                 header.extend([labelMap[category]["name"]])
 

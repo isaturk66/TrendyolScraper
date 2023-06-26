@@ -222,7 +222,7 @@ async def fetchLinks(scrapingURL):
       }""")*5
 
 
-    except TypeError as e:
+    except TypeError as e:  
       ## Probably a bad page was loaded like a 404 error or no results page
       ## We are doing nothing here as the reminder of the code is handling it 
       pass
